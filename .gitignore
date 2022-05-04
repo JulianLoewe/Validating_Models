@@ -180,3 +180,5 @@ profiles
 .test_cache
 .output
 stacked_histogram_plots
+notebooks
+evaluation results
