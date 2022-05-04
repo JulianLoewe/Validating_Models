@@ -1,0 +1,1063 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>validating_models.dataset &#8212; Validating Models  documentation</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+<a class="navbar-brand" href="../../index.html">
+<p class="title">Validating Models</p>
+</a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../modules.html">
+  validating_models
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for validating_models.dataset</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="kn">from</span> <span class="nn">.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span><span class="p">,</span> <span class="n">InvertedPredictionConstraint</span><span class="p">,</span> <span class="n">InvertedShaclSchemaConstraint</span><span class="p">,</span> <span class="n">PredictionConstraint</span><span class="p">,</span> <span class="n">ShaclSchemaConstraint</span>
+<span class="kn">from</span> <span class="nn">.shacl_validation_engine</span> <span class="kn">import</span> <span class="n">Communicator</span><span class="p">,</span><span class="n">ReducedTravshaclCommunicator</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="kn">import</span> <span class="n">Bunch</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span>
+
+<span class="kn">from</span> <span class="nn">SPARQLWrapper</span> <span class="kn">import</span> <span class="n">SPARQLWrapper</span><span class="p">,</span> <span class="n">JSON</span>
+<span class="kn">from</span> <span class="nn">rdflib.plugins</span> <span class="kn">import</span> <span class="n">sparql</span>
+
+<span class="kn">from</span> <span class="nn">validating_models.stats</span> <span class="kn">import</span> <span class="n">get_decorator</span><span class="p">,</span> <span class="n">get_hyperparameter_value</span>
+
+<span class="n">time_join</span> <span class="o">=</span> <span class="n">get_decorator</span><span class="p">(</span><span class="s1">&#39;join&#39;</span><span class="p">)</span>
+<span class="n">time_random_shacl_results</span> <span class="o">=</span> <span class="n">get_decorator</span><span class="p">(</span><span class="s1">&#39;random shacl results&#39;</span><span class="p">)</span>
+<span class="n">time_feature_range</span> <span class="o">=</span> <span class="n">get_decorator</span><span class="p">(</span><span class="s1">&#39;feature range&#39;</span><span class="p">)</span>
+
+<span class="n">MAX_INSTANCES_IN_FILTER</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">DATATYPE_TO_PANDAS_TYPE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;http://www.w3.org/2001/XMLSchema#int&#39;</span><span class="p">:</span> <span class="s1">&#39;numeric&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;http://www.w3.org/2001/XMLSchema#boolean&#39;</span><span class="p">:</span> <span class="s1">&#39;bool&#39;</span>
+<span class="p">}</span>
+
+<span class="n">TYPE_TO_PANDAS_TYPE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;uri&#39;</span><span class="p">:</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;literal&#39;</span><span class="p">:</span> <span class="s1">&#39;category&#39;</span>
+<span class="p">}</span>
+
+<div class="viewcode-block" id="Dataset"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.Dataset">[docs]</a><span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract representation of a dataset, including the most important parameters about the dataset.</span>
+
+<span class="sd">    A dataset used for suppervised learning consists of samples (x,y), where x is a set of features (the problem instance) and y is a label (the target).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pandas.DataFrame</span>
+<span class="sd">        The dataset having the features and the target as columns.</span>
+<span class="sd">    target_name : str</span>
+<span class="sd">        The name of the target.</span>
+<span class="sd">    categorical_mapping : mapping of str to (mapping of int to str)</span>
+<span class="sd">        Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                 <span class="n">target_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">categorical_mapping</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_name</span> <span class="o">=</span> <span class="n">target_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_mapping</span> <span class="o">=</span> <span class="n">categorical_mapping</span>
+
+        <span class="c1"># Target is always numerical</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_mapping</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">):</span><span class="n">class_name</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_feature_range_cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Dataset.x_data"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.Dataset.x_data">[docs]</a>    <span class="k">def</span> <span class="nf">x_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the problem instances of the dataset (e.g. the dataset without the target)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df : bool</span>
+<span class="sd">            Whethere to return a pandas.Dataframe.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray or pandas.Dataframe</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">df</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">]</span><span class="o">.</span><span class="n">values</span></div>
+
+<div class="viewcode-block" id="Dataset.y_data"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.Dataset.y_data">[docs]</a>    <span class="k">def</span> <span class="nf">y_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the target values of the dataset (e.g. the dataset without the features)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df : bool</span>
+<span class="sd">            Whethere to return a pandas.Dataframe.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray or pandas.Dataframe</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">df</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_name</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_name</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span></div>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the number of samples in the dataset</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            The number of samples in the dataset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">class_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The names of the classes of the target. In case of a regression task, this will return all unique values of the target.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of string</span>
+<span class="sd">            The names of the classes of the target.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_categorical</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_name</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">categorical_mapping</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">class_name</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_data</span><span class="p">()))}</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">categorical_mapping</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_name</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Dataset.feature_range"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.Dataset.feature_range">[docs]</a>    <span class="nd">@time_feature_range</span>
+    <span class="k">def</span> <span class="nf">feature_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The numerical range of the given feature.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        feature : str</span>
+<span class="sd">            The feature</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        [numerical, numerical]</span>
+<span class="sd">            The numerical range of the given feature.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">feature</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feature_range_cache</span><span class="p">:</span>
+            <span class="nb">max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="nb">min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_feature_range_cache</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feature_range_cache</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Dataset.categorical_split"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.Dataset.categorical_split">[docs]</a>    <span class="k">def</span> <span class="nf">categorical_split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Given the categorical mapping for the given feature two strings are returned. The first representing the categories assigned to values below x and the other categories above x.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        feature : str</span>
+<span class="sd">            The feature</span>
+<span class="sd">        x : float</span>
+<span class="sd">            The split value</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str, str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">feature</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">categorical_mapping</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">mapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">categorical_mapping</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span>
+        <span class="n">left_labels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">value</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">mapping</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">]</span>
+        <span class="n">right_labels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">value</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">mapping</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">x</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">left_labels</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">left</span> <span class="o">=</span> <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">left_labels</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">left</span> <span class="o">=</span> <span class="n">left_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">right_labels</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">right</span> <span class="o">=</span> <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span><span class="p">,</span>
+                                   <span class="n">label</span> <span class="ow">in</span> <span class="n">mapping</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">x</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">right</span> <span class="o">=</span> <span class="n">right_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span></div>
+
+<div class="viewcode-block" id="Dataset.is_categorical"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.Dataset.is_categorical">[docs]</a>    <span class="k">def</span> <span class="nf">is_categorical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Whether a feature is included in the categorical mapping.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        feature : str</span>
+<span class="sd">            The feature</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">feature</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">categorical_mapping</span></div>
+    
+<div class="viewcode-block" id="Dataset.get_sample_to_node_mapping"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.Dataset.get_sample_to_node_mapping">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">get_sample_to_node_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+    <span class="c1"># @staticmethod</span>
+    <span class="c1"># def from_sklearn_dataset(data: Bunch, target_name, **args):</span>
+    <span class="c1">#     return Dataset(x_data=data.data, y_data=data.target, feature_names=data.feature_names, target_name=target_name, class_names=data.target_names, **args)</span>
+
+    <span class="c1"># @staticmethod</span>
+    <span class="c1"># def from_openml_dataset(id, target: str = None, **args):</span>
+    <span class="c1">#     dataset = openml.datasets.get_dataset(id)</span>
+
+    <span class="c1">#     if target == None:</span>
+    <span class="c1">#         target = dataset.default_target_attribute</span>
+
+    <span class="c1">#     X, y, categorical_indicator, attribute_names = dataset.get_data(</span>
+    <span class="c1">#         dataset_format=&quot;dataframe&quot;, target=dataset.default_target_attribute)</span>
+    <span class="c1">#     df = pd.merge(X, y, left_index=True, right_index=True, validate=&#39;1:1&#39;)</span>
+    <span class="c1">#     for cat, name in zip(categorical_indicator, attribute_names):</span>
+    <span class="c1">#         if cat:</span>
+    <span class="c1">#             df[name] = df[name].astype(&#39;category&#39;)</span>
+    <span class="c1">#     return Dataset(df=df, target_name=target, **args)</span>
+    
+<div class="viewcode-block" id="Dataset.convert_to_numerical"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.Dataset.convert_to_numerical">[docs]</a>    <span class="k">def</span> <span class="nf">convert_to_numerical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Given the name of a column in the dataset, the column is converted inplace to a numerical. This methode also updates the cateogical_mapping attribute.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        column : str</span>
+<span class="sd">            The name of the column to be converted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;category&#39;</span><span class="p">:</span>
+            <span class="n">uniques</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">uniques</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">str</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">uniques</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">CategoricalDtype</span><span class="p">(</span><span class="n">categories</span><span class="o">=</span><span class="n">uniques</span><span class="p">))</span>
+        
+        <span class="n">mapping</span> <span class="o">=</span> <span class="p">{</span><span class="n">column</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">codes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">codes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categorical_mapping</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">mapping</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="BaseDataset"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.BaseDataset">[docs]</a><span class="k">class</span> <span class="nc">BaseDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The BaseDataset extends the Dataset by providing the capabilities to create the dataset based on a knowledge graph and by doing so extract a mapping from each sample to a seed node (IRI / URI) in the knowledge graph.</span>
+<span class="sd">    As the SHACL validation should be performed over the minimal number of instances, it&#39;s useful to have a query only returning the IRIs of the seed nodes in the dataset. That is the seed_query.</span>
+<span class="sd">    The seed_query refers to the seed nodes with the variable called seed_var. </span>
+<span class="sd">    The SHACL validation is performed via a communicator and can be turned to random by setting random_schema_validation to true.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sample_to_node_mapping : pandas.DataFrame</span>
+<span class="sd">        A DataFrame(*idx*, node_id) having the same index idx as the dataframe df storing the dataset and a column with the seed_var as name including all the seed node identifiers (IRI / URI). When SHACL validation is performed the joined SHACL valiation results, will be stored here.</span>
+<span class="sd">    shacl_validation_results : dict of pandas.DataFrame</span>
+<span class="sd">        When validating a shacl schema the results are stored here. Entries are of the form f&#39;{shacl_schema_directory}_{target_shape}&#39;. The results are stored separate to avoid joining the different validation results for each seed node.</span>
+<span class="sd">        Each entry is a DataFrame(*node_id*, validation_result) </span>
+<span class="sd">    seed_var : str</span>
+<span class="sd">        The variable in seed_query and in the sample_to_node_mapping referring to the seed nodes</span>
+<span class="sd">    random_schema_validation : bool</span>
+<span class="sd">        Whether random results are used instead of the SHACL valiation results.</span>
+<span class="sd">    communicator : validating_models.shacl_validation_engine.Communicator</span>
+<span class="sd">        The communicator object used to communication with the SHACL validation engine.</span>
+<span class="sd">    seed_query : str</span>
+<span class="sd">        The SPARQL query returning the seed nodes used to create the dataset.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pandas.DataFrame</span>
+<span class="sd">        The dataset having the features and the target as columns.</span>
+<span class="sd">    target_name : str</span>
+<span class="sd">        The name of the target.</span>
+<span class="sd">    categorical_mapping : mapping of str to (mapping of int to str), optional</span>
+<span class="sd">        Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</span>
+<span class="sd">    seed_query : str</span>
+<span class="sd">        The SPARQL query returning the seed nodes used to create the dataset.</span>
+<span class="sd">    seed_var : str</span>
+<span class="sd">        The variable in seed_query and in the sample_to_node_mapping referring to the seed nodes</span>
+<span class="sd">    sample_to_node_mapping : pandas.DataFrame</span>
+<span class="sd">        A DataFrame(*idx*, node_id) having the same index idx as the dataframe df storing the dataset and a column with the seed_var as name including all the seed node identifiers (IRI / URI).</span>
+<span class="sd">    communicator : validating_models.shacl_validation_engine.Communicator</span>
+<span class="sd">        The communicator object to use for the communication with an SHACL validation engine</span>
+<span class="sd">    random_schema_validation : bool</span>
+<span class="sd">        Whether to use random results instead of the SHACL valiation results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                 <span class="n">target_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">seed_query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">seed_var</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">sample_to_node_mapping</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                 <span class="n">communicator</span><span class="p">:</span> <span class="n">Communicator</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">random_schema_validation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">categorical_mapping</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">target_name</span><span class="o">=</span><span class="n">target_name</span><span class="p">,</span>
+                         <span class="n">categorical_mapping</span><span class="o">=</span><span class="n">categorical_mapping</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span> <span class="o">=</span> <span class="n">seed_var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span> <span class="o">=</span> <span class="n">sample_to_node_mapping</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">unique_seed_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sample_to_node_mapping</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unneeded_seed_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_schema_validation</span> <span class="o">=</span> <span class="n">random_schema_validation</span>
+
+        <span class="k">if</span> <span class="n">communicator</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">communicator</span> <span class="o">=</span> <span class="n">communicator</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">communicator</span> <span class="o">=</span> <span class="n">Communicator</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed_query</span> <span class="o">=</span> <span class="n">seed_query</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of unique nodes: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_sample_to_node_mapping</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">())))</span>
+
+<div class="viewcode-block" id="BaseDataset.from_knowledge_graph"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.BaseDataset.from_knowledge_graph">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_knowledge_graph</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">validation_engine</span><span class="p">:</span> <span class="n">Communicator</span><span class="p">,</span> <span class="n">data_query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seed_var</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">seed_query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">raw_data_query_results_to_df_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To create the dataset, while generating the task_example_to_node mapping, the dataset has to be retrieved from an endpoint by querying. </span>
+<span class="sd">        This is the method, which has to be used if one doesn&#39;t has the task_example_to_node mapping locally available.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        endpoint : str</span>
+<span class="sd">            The SPARQL endpoint</span>
+<span class="sd">        validation_engine : validating_models.shacl_validation_engine.Communicator</span>
+<span class="sd">            The communicator object to use for the communication with an SHACL validation engine</span>
+<span class="sd">        data_query : str</span>
+<span class="sd">            The used to extract the dataset, but at most the seed nodes (bound to ?x (!!)) </span>
+<span class="sd">        seed_query : str, optional</span>
+<span class="sd">            The query extracting all the seed nodes. Is inferred automatically from the data_query, but use incase of failure. </span>
+<span class="sd">        target_name : </span>
+<span class="sd">            The name of the target.</span>
+<span class="sd">        ground_truth : pandas.DataFrame, optional</span>
+<span class="sd">            If the ground_truth is not available in the knowledge graph a DataFrame(*seed_var*, target_name) can be provided, which will be joined with the dataset.</span>
+<span class="sd">        raw_data_query_results_to_df_hook : Functional</span>
+<span class="sd">            The user may provide a custom methode to transform the raw sparql query results into the final dataframe. The seed nodes can be ignored here, but the order of the results need to be kept and all results have to be transformed into an sample. </span>
+<span class="sd">        args : Further Arguments</span>
+<span class="sd">            Further Arguments to be passed to raw_data_query_results_to_df_hook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">seed_query</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pvs</span> <span class="o">=</span> <span class="n">sparql</span><span class="o">.</span><span class="n">processor</span><span class="o">.</span><span class="n">prepareQuery</span><span class="p">(</span><span class="n">seed_query</span><span class="p">)</span><span class="o">.</span><span class="n">algebra</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;PV&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                    <span class="s1">&#39;Seed query needs to project exactly one variable!&#39;</span><span class="p">)</span>
+            <span class="n">seed_var</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pvs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;?&#39;</span> <span class="o">+</span> <span class="n">seed_var</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_query</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;If the seed query is not given the data_query has to retrieve the seeds and assign it to the variable </span><span class="si">{</span><span class="n">seed_var</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+            <span class="n">seed_query</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                <span class="sa">r</span><span class="s1">&#39;(SELECT\s+(DISTINCT|REDUCED)?).*WHERE&#39;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s1">&#39;SELECT ?</span><span class="si">{</span><span class="n">seed_var</span><span class="si">}</span><span class="s1"> WHERE&#39;</span><span class="p">,</span>
+                <span class="n">data_query</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Get the data from the kg</span>
+        <span class="n">endpoint</span> <span class="o">=</span> <span class="n">SPARQLWrapper</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
+        <span class="n">endpoint</span><span class="o">.</span><span class="n">setReturnFormat</span><span class="p">(</span><span class="n">JSON</span><span class="p">)</span>
+        <span class="n">endpoint</span><span class="o">.</span><span class="n">setQuery</span><span class="p">(</span><span class="n">data_query</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">endpoint</span><span class="o">.</span><span class="n">query</span><span class="p">()</span><span class="o">.</span><span class="n">convert</span><span class="p">()</span>
+        <span class="n">bindings</span> <span class="o">=</span> <span class="p">[{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">binding</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                    <span class="k">for</span> <span class="n">binding</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">][</span><span class="s1">&#39;bindings&#39;</span><span class="p">]]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">bindings</span><span class="p">)</span>
+
+        <span class="c1"># Create DataFrame from Mapping</span>
+        <span class="k">if</span> <span class="n">raw_data_query_results_to_df_hook</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sample_to_node_mapping</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="n">seed_var</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">del</span> <span class="n">df</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">raw_data_query_results_to_df_hook</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Automatic estimation of column types based on given bindings</span>
+            <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">idx_with_column</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">][</span><span class="s1">&#39;bindings&#39;</span><span class="p">])):</span>
+                    <span class="k">if</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">][</span><span class="s1">&#39;bindings&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                        <span class="n">idx_with_column</span> <span class="o">=</span> <span class="n">i</span>
+                        <span class="k">break</span>
+                <span class="k">if</span> <span class="n">idx_with_column</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">][</span><span class="s1">&#39;bindings&#39;</span><span class="p">][</span><span class="n">idx_with_column</span><span class="p">][</span><span class="n">column</span><span class="p">]</span>
+                    <span class="n">found_type</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="s1">&#39;datatype&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="s1">&#39;datatype&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">DATATYPE_TO_PANDAS_TYPE</span><span class="p">:</span>
+                            <span class="n">found_type</span> <span class="o">=</span> <span class="n">DATATYPE_TO_PANDAS_TYPE</span><span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="s1">&#39;datatype&#39;</span><span class="p">]]</span>
+                    <span class="k">if</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">TYPE_TO_PANDAS_TYPE</span><span class="p">:</span>
+                            <span class="n">found_type</span> <span class="o">=</span> <span class="n">TYPE_TO_PANDAS_TYPE</span><span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]]</span>
+                    <span class="k">if</span> <span class="n">found_type</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">found_type</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">found_type</span> <span class="o">==</span> <span class="s1">&#39;numeric&#39;</span><span class="p">:</span>
+                            <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span>
+                                <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">found_type</span> <span class="o">==</span> <span class="s1">&#39;category&#39;</span><span class="p">:</span>
+                            <span class="n">categories</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+                            <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+                                <span class="n">pd</span><span class="o">.</span><span class="n">CategoricalDtype</span><span class="p">(</span><span class="n">categories</span><span class="o">=</span><span class="n">categories</span><span class="p">))</span>
+                        <span class="k">elif</span> <span class="n">found_type</span> <span class="o">==</span> <span class="s1">&#39;bool&#39;</span><span class="p">:</span>
+                            <span class="n">categories</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+                            <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+                                <span class="n">pd</span><span class="o">.</span><span class="n">CategoricalDtype</span><span class="p">(</span><span class="n">categories</span><span class="o">=</span><span class="n">categories</span><span class="p">))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">df</span><span class="p">[[</span><span class="n">column</span><span class="p">]]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">found_type</span><span class="p">))</span>
+
+            <span class="n">sample_to_node_mapping</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="n">seed_var</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">seed_var</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="s1">&#39;1:1&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">BaseDataset</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">target_name</span><span class="p">,</span> <span class="n">seed_query</span><span class="p">,</span> <span class="n">seed_var</span><span class="p">,</span> <span class="n">sample_to_node_mapping</span><span class="o">=</span><span class="n">sample_to_node_mapping</span><span class="p">,</span> <span class="n">communicator</span><span class="o">=</span><span class="n">validation_engine</span><span class="p">)</span></div>
+    
+    <span class="nd">@time_random_shacl_results</span>
+    <span class="k">def</span> <span class="nf">_generate_random_shacl_schema_validation_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="p">):</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_sample</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">p</span><span class="o">/</span><span class="n">p</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">random_val_results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unique_seed_nodes</span><span class="p">),),</span><span class="n">p</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">constraint</span><span class="o">.</span><span class="n">target_shape</span><span class="p">:</span> <span class="p">{</span><span class="n">node</span><span class="p">:</span> <span class="n">random_val_results</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unique_seed_nodes</span><span class="p">)</span> <span class="k">if</span> <span class="n">random_val_results</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">}}</span>
+
+    <span class="k">def</span> <span class="nf">_calculate_shacl_schema_validation_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="p">:</span> <span class="n">Constraint</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validating SHACL shape schema </span><span class="si">{</span><span class="n">constraint</span><span class="o">.</span><span class="n">shape_schema_dir</span><span class="si">}</span><span class="s2"> of single constraint with target </span><span class="si">{</span><span class="n">constraint</span><span class="o">.</span><span class="n">target_shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_schema_validation</span><span class="p">:</span>
+            <span class="n">val_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_random_shacl_schema_validation_results</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">communicator</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seed_query</span><span class="p">,</span> <span class="n">constraint</span><span class="o">.</span><span class="n">shape_schema_dir</span><span class="p">,</span> <span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">target_shape</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">val_results</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">target_shape</span><span class="p">],</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span> 
+    
+<div class="viewcode-block" id="BaseDataset.calculate_shacl_schema_valiation_results"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.BaseDataset.calculate_shacl_schema_valiation_results">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_shacl_schema_valiation_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Constraint</span><span class="p">],</span> <span class="n">checker</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the shacl schema validation results, such that each shacl schema is reduced and each shacl schema is only validated once. </span>
+<span class="sd">           The join with the sample-to-node mapping is not performed.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        constraints : list of Constraint</span>
+<span class="sd">            The list of constraints referring to the shacl schemas and target schemas needed to be validated over the knowledge graph</span>
+<span class="sd">        checker : Checker</span>
+<span class="sd">            If constraints include constraints of type PredictionConstraint the number of SHACL validation results needed can be further reduced by interleaving the constraint checking with the SHACL validation.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">validating_models.checker</span> <span class="kn">import</span> <span class="n">Checker</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">checker</span><span class="p">,</span><span class="n">Checker</span><span class="p">):</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">checker</span><span class="o">.</span><span class="n">dataset</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicator</span><span class="p">,</span> <span class="n">ReducedTravshaclCommunicator</span><span class="p">):</span>
+            <span class="n">sample_to_node_mapping</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_sample_to_node_mapping</span><span class="p">()</span>
+            <span class="c1"># Collect target shapes for the given shape schema&#39;s</span>
+            <span class="n">constraints_per_shape_network</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">shape_schema_dir</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">constraint</span><span class="o">.</span><span class="n">target_shape</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">shape_schema_dir</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">constraints_per_shape_network</span><span class="p">:</span>
+                            <span class="n">constraints_per_shape_network</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">shape_schema_dir</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">constraint</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">constraints_per_shape_network</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">shape_schema_dir</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+            
+            <span class="n">target_shapes_per_shape_network</span> <span class="o">=</span> <span class="p">{</span><span class="n">shape_schema</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">constraint</span><span class="o">.</span><span class="n">target_shape</span> <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">]))</span> <span class="k">for</span> <span class="n">shape_schema</span><span class="p">,</span> <span class="n">constraints</span> <span class="ow">in</span> <span class="n">constraints_per_shape_network</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">for</span> <span class="n">shape_schema_dir</span><span class="p">,</span> <span class="n">target_shapes</span> <span class="ow">in</span> <span class="n">target_shapes_per_shape_network</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">constraints_validated_here</span> <span class="o">=</span> <span class="n">constraints_per_shape_network</span><span class="p">[</span><span class="n">shape_schema_dir</span><span class="p">]</span>
+                <span class="n">filter_clause_per_target_shape</span> <span class="o">=</span> <span class="p">{</span><span class="n">target_shape</span><span class="p">:</span> <span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">target_shape</span> <span class="ow">in</span> <span class="n">target_shapes</span><span class="p">}</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">checker</span><span class="p">,</span> <span class="n">Checker</span><span class="p">):</span> <span class="c1"># and np.array([isinstance(constraint, PredictionConstraint) for constraint in constraints]).all():</span>
+                    <span class="c1">#  Only perform the shacl validation for the instances needed (restricted in the case of PredictionConstraints)</span>
+                    <span class="n">indices_to_exclude_per_target_shape</span> <span class="o">=</span> <span class="p">{</span><span class="n">target_shape</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">target_shape</span> <span class="ow">in</span> <span class="n">target_shapes</span><span class="p">}</span>
+                    <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints_validated_here</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">constraint</span><span class="p">,</span> <span class="n">PredictionConstraint</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">target_shape</span> <span class="ow">in</span> <span class="n">indices_to_exclude_per_target_shape</span><span class="p">:</span>
+                                <span class="n">indices_to_exclude_per_target_shape</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">target_shape</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">checker</span><span class="o">.</span><span class="n">pre_evaluate_expression</span><span class="p">(</span><span class="n">constraint</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">constraint</span><span class="p">,</span> <span class="n">ShaclSchemaConstraint</span><span class="p">):</span>
+                            <span class="k">del</span> <span class="n">indices_to_exclude_per_target_shape</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">target_shape</span><span class="p">]</span> <span class="c1">#TODO: May however reduce the nodes unneeded by the ProcessedDataset</span>
+
+                    <span class="k">for</span> <span class="n">target_shape</span><span class="p">,</span> <span class="n">indices_to_exclude_list</span> <span class="ow">in</span> <span class="n">indices_to_exclude_per_target_shape</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices_to_exclude_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="k">continue</span>
+                        <span class="n">indices_to_exclude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">indices_to_exclude_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                        
+                        <span class="n">nodes_to_exclude</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sample_to_node_mapping</span><span class="p">[</span><span class="n">indices_to_exclude</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">unneeded_seed_nodes</span><span class="p">)</span>
+                        <span class="n">nodes_to_include</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">unique_seed_nodes</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">nodes_to_exclude</span><span class="p">)</span>                        
+                        <span class="n">num_nodes_to_exclude</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes_to_exclude</span><span class="p">)</span>
+                        <span class="n">num_nodes_to_include</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes_to_include</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">num_nodes_to_exclude</span> <span class="o">&lt;</span> <span class="n">num_nodes_to_include</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">num_nodes_to_exclude</span> <span class="o">&lt;=</span> <span class="n">MAX_INSTANCES_IN_FILTER</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Adding FILTER clause to reduce the number of results.&#39;</span><span class="p">)</span>
+                                <span class="n">filter_clause_per_target_shape</span><span class="p">[</span><span class="n">target_shape</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;FILTER (?</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="si">}</span><span class="s1"> NOT IN (</span><span class="si">{</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="n">node</span><span class="si">}</span><span class="s2">&gt;&quot;</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes_to_exclude</span><span class="p">])</span><span class="si">}</span><span class="s1">))&#39;</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Skip adding filter clause to </span><span class="si">{</span><span class="n">target_shape</span><span class="si">}</span><span class="s1"> because of to many instances (</span><span class="si">{</span><span class="n">num_nodes_to_exclude</span><span class="si">}</span><span class="s1">) to exclude.&#39;</span><span class="p">)</span>
+                                <span class="k">continue</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">num_nodes_to_include</span> <span class="o">&lt;=</span> <span class="n">MAX_INSTANCES_IN_FILTER</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Adding FILTER clause to reduce the number of results.&#39;</span><span class="p">)</span>
+                                <span class="n">filter_clause_per_target_shape</span><span class="p">[</span><span class="n">target_shape</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;FILTER (?</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="si">}</span><span class="s1"> IN (</span><span class="si">{</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;&lt;</span><span class="si">{</span><span class="n">node</span><span class="si">}</span><span class="s2">&gt;&quot;</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes_to_include</span><span class="p">])</span><span class="si">}</span><span class="s1">))&#39;</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Skip adding filter clause to </span><span class="si">{</span><span class="n">target_shape</span><span class="si">}</span><span class="s1"> because of to many instances (</span><span class="si">{</span><span class="n">num_nodes_to_include</span><span class="si">}</span><span class="s1">) to include.&#39;</span><span class="p">)</span>
+                                <span class="k">continue</span>  
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Skip adding filter clause because no checker instance is provided.&#39;</span><span class="p">)</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validating </span><span class="si">{</span><span class="n">shape_schema_dir</span><span class="si">}</span><span class="s2"> for targets </span><span class="si">{</span><span class="n">target_shapes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">val_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">communicator</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_query</span><span class="p">,</span> <span class="n">shape_schema_dir</span><span class="p">,</span> <span class="n">target_shapes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="p">,</span> <span class="n">filter_clause_per_target_shape</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Falling back to not use additional FILTER clauses.&#39;</span><span class="p">)</span>
+                    <span class="n">val_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">communicator</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_query</span><span class="p">,</span> <span class="n">shape_schema_dir</span><span class="p">,</span> <span class="n">target_shapes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">target_shape</span> <span class="ow">in</span> <span class="n">target_shapes</span><span class="p">:</span>
+                    <span class="n">shacl_identifier</span> <span class="o">=</span> <span class="n">Constraint</span><span class="o">.</span><span class="n">get_shacl_identifier</span><span class="p">(</span><span class="n">shape_schema_dir</span><span class="p">,</span> <span class="n">target_shape</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">[</span><span class="n">shacl_identifier</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">val_results</span><span class="p">[</span><span class="n">target_shape</span><span class="p">],</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">shacl_identifier</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span> 
+
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of validated targets: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">[</span><span class="n">shacl_identifier</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_shacl_schema_validation_result</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="BaseDataset.get_shacl_schema_validation_results"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.BaseDataset.get_shacl_schema_validation_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_shacl_schema_validation_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Constraint</span><span class="p">],</span> <span class="n">indices</span><span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rename_columns</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">replace_non_applicable_nans</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">checker</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gives the shacl schema validation results for the given constraints. Performs the needed index-join with the sample-to-node-mapping.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        constraints : List[Constraint]</span>
+<span class="sd">            The constraints, for which the shacl schema validation results are needed</span>
+<span class="sd">        indices : list of int, optional</span>
+<span class="sd">            The indices for which the validation results are needed, by default all indices in the dataset</span>
+<span class="sd">        rename_columns : boolean, optional</span>
+<span class="sd">            Renames the columns of shacl schema validation results to their constraint names, by default no renaming is done</span>
+<span class="sd">        replace_non_applicable_nans : boolean, optional</span>
+<span class="sd">            Replaces nan values with true, by default nans are not replaced. Normally entities not included in the target defintion of the target shape are marked with nan.</span>
+<span class="sd">        checker : Checker</span>
+<span class="sd">            If constraints include constraints of type PredictionConstraint the number of SHACL validation results needed can be further reduced by interleaving the constraint checking with the SHACL validation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.Dataframe</span>
+<span class="sd">            The dataframe containing the shacl schema validation results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">not_joined_yet</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">not_calculated_yet</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="c1"># The Join was not yet performed</span>
+                <span class="n">not_joined_yet</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">:</span>
+                    <span class="c1"># The are no shacl schema validation results yet</span>
+                    <span class="n">not_calculated_yet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+
+        <span class="c1"># Calculate the shacl schema validation results for the given constraints</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculate_shacl_schema_valiation_results</span><span class="p">(</span><span class="n">not_calculated_yet</span><span class="p">,</span> <span class="n">checker</span> <span class="o">=</span> <span class="n">checker</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">get_hyperparameter_value</span><span class="p">(</span><span class="s1">&#39;use_outer_join&#39;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using outer join to join multiple constraints&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outer_join_pandas</span><span class="p">(</span><span class="n">not_joined_yet</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">identifier</span> <span class="ow">in</span> <span class="n">not_joined_yet</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index_join_pandas</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+        
+        <span class="n">result_identifiers</span> <span class="o">=</span> <span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span> <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">indices</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">indices</span><span class="p">,</span><span class="n">result_identifiers</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span><span class="p">[</span><span class="n">result_identifiers</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="n">replace_non_applicable_nans</span><span class="p">:</span> <span class="c1">#TODO: This might be the wrong place to do this...</span>
+            <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">constraint</span><span class="p">,</span> <span class="p">(</span><span class="n">InvertedPredictionConstraint</span><span class="p">,</span> <span class="n">InvertedShaclSchemaConstraint</span><span class="p">)):</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">rename_columns</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">constraint</span><span class="o">.</span><span class="n">shacl_identifier</span><span class="p">:</span><span class="n">constraint</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+    
+    <span class="nd">@time_join</span>
+    <span class="k">def</span> <span class="nf">_index_join_pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">):</span> <span class="c1"># left outer join</span>
+        <span class="n">joined_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">[</span><span class="n">what</span><span class="p">],</span> <span class="n">on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">joined_result</span>
+    
+    <span class="nd">@time_join</span>
+    <span class="k">def</span> <span class="nf">_outer_join_pandas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">what</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">what</span> <span class="o">=</span> <span class="n">what</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">[</span><span class="n">what</span><span class="p">],</span> <span class="n">on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">[</span><span class="n">what</span><span class="p">],</span> <span class="n">on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">get_hyperparameter_value</span><span class="p">(</span><span class="s1">&#39;order_by_cardinality&#39;</span><span class="p">):</span>
+                <span class="n">what</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">[</span><span class="n">x</span><span class="p">]),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">[</span><span class="n">x</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">what</span><span class="p">])</span>
+            <span class="n">first_key</span> <span class="o">=</span> <span class="n">what</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="c1"># shacl results are joined first with full outer join and afterwards joined with the mapping with a left outer join</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">[</span><span class="n">first_key</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">what</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shacl_validation_results</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="c1">#return self.sample_to_node_mapping.join(self.shacl_validation_results[first_key].join([self.shacl_validation_results[key] for key in what], how=&#39;outer&#39;), on=self.seed_var)</span>
+
+<div class="viewcode-block" id="BaseDataset.get_sample_to_node_mapping"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.BaseDataset.get_sample_to_node_mapping">[docs]</a>    <span class="k">def</span> <span class="nf">get_sample_to_node_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the sample-to-node mapping.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        indices : list of int, optional</span>
+<span class="sd">            the indices of interest, defaults to all indices</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.Dataframe</span>
+<span class="sd">            The DataFrame(*idx*, node_id) containg the sample-to-node mapping. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">indices</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">indices</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_to_node_mapping</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="BaseDataset.get_result_iris"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.BaseDataset.get_result_iris">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_result_iris</span><span class="p">(</span><span class="n">endpoint_url</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
+        <span class="n">endpoint</span> <span class="o">=</span> <span class="n">SPARQLWrapper</span><span class="p">(</span><span class="n">endpoint_url</span><span class="p">)</span>
+        <span class="n">endpoint</span><span class="o">.</span><span class="n">setReturnFormat</span><span class="p">(</span><span class="n">JSON</span><span class="p">)</span>
+        <span class="n">endpoint</span><span class="o">.</span><span class="n">setQuery</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">endpoint</span><span class="o">.</span><span class="n">query</span><span class="p">()</span><span class="o">.</span><span class="n">convert</span><span class="p">()</span>
+        <span class="n">iris</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">binding</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                   <span class="k">for</span> <span class="n">binding</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">][</span><span class="s1">&#39;bindings&#39;</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">iris</span></div></div>
+
+
+<div class="viewcode-block" id="ProcessedDataset"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.ProcessedDataset">[docs]</a><span class="k">class</span> <span class="nc">ProcessedDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The user of a BaseDataset &#39;&#39;base&#39;&#39; may choose to extract the dataframe by calling base.df and choose to modify the features and targets (feature engineering). Also samples may be merged, dropped or duplicated.</span>
+<span class="sd">    In that case the sample-to-node-mapping will be corrupted and need to be repaired. Keeping the mapping intact after performing operations like the one above is the task of this class.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    processed_df : pandas.DataFrame</span>
+<span class="sd">        The processed dataset having the features and the target as columns.</span>
+<span class="sd">    base : validating_models.dataset.BaseDataset</span>
+<span class="sd">        The BaseDataset originally used to create the Dataset, and includes the original sample-to-node mapping.</span>
+<span class="sd">    base_indices : list of int</span>
+<span class="sd">        The indices of the BaseDataset, which belong to the new processed dataset. (If the index structure is kept intakt it&#39;s simply list(processed_df.index))</span>
+<span class="sd">    target_name : str</span>
+<span class="sd">        The name of the target.</span>
+<span class="sd">    categorical_mapping : mapping of str to (mapping of int to str)</span>
+<span class="sd">        Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">processed_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="n">BaseDataset</span><span class="p">,</span> <span class="n">base_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">target_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">categorical_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">categorical_mapping</span> <span class="o">=</span> <span class="n">categorical_mapping</span> <span class="k">if</span> <span class="n">categorical_mapping</span> <span class="o">!=</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">base</span><span class="o">.</span><span class="n">categorical_mapping</span>
+        <span class="n">target_name</span> <span class="o">=</span> <span class="n">target_name</span> <span class="k">if</span> <span class="n">target_name</span> <span class="o">!=</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">base</span><span class="o">.</span><span class="n">target_name</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">processed_df</span><span class="p">,</span> <span class="n">target_name</span><span class="p">,</span> <span class="n">categorical_mapping</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">BaseDataset</span><span class="p">)</span> <span class="ow">or</span> <span class="n">base</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;base has to be of the type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">BaseDataset</span><span class="p">)</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="n">base</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_indices</span> <span class="o">=</span> <span class="n">base_indices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">seed_var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed_var</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unique_seed_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_sample_to_node_mapping</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unneeded_seed_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">unique_seed_nodes</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">unique_seed_nodes</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Identified </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unique_seed_nodes</span><span class="p">)</span><span class="si">}</span><span class="s1"> unique seed nodes!&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;In comparison to the BaseDataset this makes a total of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unneeded_seed_nodes</span><span class="p">)</span><span class="si">}</span><span class="s1"> unneeded seed nodes!&#39;</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="ProcessedDataset.from_unchanged_index"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.ProcessedDataset.from_unchanged_index">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_unchanged_index</span><span class="p">(</span><span class="n">processed_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="n">BaseDataset</span><span class="p">,</span> <span class="n">target_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">categorical_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates the ProcessedDataset from a Dataframe with the index structure kept intact. For the datasets, this means that a given index refers to the semantically indentical samples (which therefor refer to the same seed node in the knowledge graph).</span>
+<span class="sd">        E.g. :math:`\\forall i ((\\text{processed\_df}[i] \\rightarrow seednode_1) \land (\\text{base.df}[i] \\rightarrow seednode_2)) \implies seednode_1 = seednode_2`</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        processed_df : pd.DataFrame</span>
+<span class="sd">            The modified dataframe representing the dataset.</span>
+<span class="sd">        base : BaseDataset</span>
+<span class="sd">            The origin of processed_df is base.df. Therefor base is the dataset directly created from the knowledge graph and contains the sample-to-node mapping.</span>
+<span class="sd">        target_name : str, optional</span>
+<span class="sd">            The name of the column in processed_df refering to the target, optional</span>
+<span class="sd">        categorical_mapping : mapping of str to (mapping of int to str), optional</span>
+<span class="sd">            Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ProcessedDataset</span>
+<span class="sd">            The ProcessedDataset object with the correctly set base_indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ProcessedDataset</span><span class="p">(</span><span class="n">processed_df</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">processed_df</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">target_name</span><span class="p">,</span> <span class="n">categorical_mapping</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="ProcessedDataset.from_index_column"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.ProcessedDataset.from_index_column">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_index_column</span><span class="p">(</span><span class="n">processed_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="n">BaseDataset</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">categorical_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drop_column_afterwards</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Works as from_unchanged_index but assumes the index copied to column before processing the dataframe. For example by using reset_index(drop=False) on base.df.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        processed_df : pd.DataFrame</span>
+<span class="sd">            The modified dataframe representing the dataset.</span>
+<span class="sd">        base : BaseDataset</span>
+<span class="sd">            The origin of processed_df is base.df. Therefore base is the dataset directly created from the knowledge graph and contains the sample-to-node mapping.</span>
+<span class="sd">        column: str</span>
+<span class="sd">            The index column.</span>
+<span class="sd">        target_name : str, optional</span>
+<span class="sd">            The name of the column in processed_df refering to the target, optional</span>
+<span class="sd">        categorical_mapping : mapping of str to (mapping of int to str), optional</span>
+<span class="sd">            Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</span>
+<span class="sd">        drop_column_afterwards, optional</span>
+<span class="sd">            Whether to drop the specified column afterwards as the column is usually not needed afterwards. Defaults to True.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ProcessedDataset</span>
+<span class="sd">            The ProcessedDataset object with the correctly set base_indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">base_indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">processed_df</span><span class="p">[</span><span class="n">column</span><span class="p">])</span>
+        
+        <span class="k">if</span> <span class="n">drop_column_afterwards</span><span class="p">:</span>
+            <span class="n">processed_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ProcessedDataset</span><span class="p">(</span><span class="n">processed_df</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">base_indices</span><span class="p">,</span> <span class="n">target_name</span><span class="p">,</span> <span class="n">categorical_mapping</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProcessedDataset.from_node_unique_columns"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.ProcessedDataset.from_node_unique_columns">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_node_unique_columns</span><span class="p">(</span><span class="n">processed_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="n">BaseDataset</span><span class="p">,</span> <span class="n">base_columns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">matching_new_columns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">target_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">categorical_mapping</span><span class="o">=</span><span class="p">{},</span> <span class="n">drop_join_columns_afterwads</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates the ProcessedDataset from a Dataframe by joining with the BaseDataset via base_columns = matching_new_columns and therefore reconstructing the sample-to-node mapping.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        processed_df : pd.DataFrame</span>
+<span class="sd">            The modified dataframe representing the dataset.</span>
+<span class="sd">        base : BaseDataset</span>
+<span class="sd">            The origin of processed_df is base.df. Therefore base is the dataset directly created from the knowledge graph and contains the sample-to-node mapping.</span>
+<span class="sd">        base_columns : List[str]</span>
+<span class="sd">            The columns to be used for joining in base.df.</span>
+<span class="sd">        matching_new_columns : List[str], optional</span>
+<span class="sd">            The columns to be used for joining in processed_df, by default base_columns</span>
+<span class="sd">        target_name : str, optional</span>
+<span class="sd">            The name of the column in processed_df refering to the target, optional</span>
+<span class="sd">        categorical_mapping : mapping of str to (mapping of int to str), optional</span>
+<span class="sd">            Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</span>
+<span class="sd">        drop_join_columns_afterwads : bool, optional</span>
+<span class="sd">            Whether to drop the matching_new_columns in processed_df. Defaults to True.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ProcessedDataset</span>
+<span class="sd">            The ProcessedDataset object with the correctly set base_indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">matching_new_columns</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">matching_new_columns</span> <span class="o">=</span> <span class="n">base_columns</span>
+
+        <span class="n">processed_df</span> <span class="o">=</span> <span class="n">processed_df</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Get the indices belonging to a node-unique entry --&gt; Each list of indices should refer to the same seed node.</span>
+        <span class="n">column_value_to_indices</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">base_columns</span><span class="p">)</span><span class="o">.</span><span class="n">indices</span>
+        
+        <span class="c1"># Check Node is unique per node_unique_column entry</span>
+        <span class="c1"># for column_value, indices in column_value_to_indices.items():</span>
+        <span class="c1">#     unique_nodes = np.unique(</span>
+        <span class="c1">#         base.sample_to_node_mapping.iloc[indices, :].values.reshape(-1,))</span>
+        <span class="c1">#     if len(unique_nodes) &gt; 1:</span>
+        <span class="c1">#         print(f&#39;{column_value} has multiple different nodes assigned:&#39;)</span>
+        <span class="c1">#         print(&#39;,\n&#39;.join(unique_nodes[:5]))</span>
+
+
+        <span class="c1"># Reverse the mapping created above, but only use the first element in each list (Should not matter as each indice in the list refer to the same seed node)</span>
+        <span class="c1"># indices[0] is unique as it was already unique before</span>
+        <span class="n">index_to_column_value</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">value</span><span class="p">,</span> <span class="n">indices</span> <span class="ow">in</span> <span class="n">column_value_to_indices</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="c1"># Create the according dataframe with the correct index </span>
+        <span class="n">correct_index_with_join_columns</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+            <span class="n">index_to_column_value</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">base_columns</span><span class="p">)</span>
+        <span class="c1"># Copy the index into a column, as the index is reset when performing the merge.</span>
+        <span class="n">correct_index_with_join_columns</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span>
+                                            <span class="s1">&#39;__index__&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">correct_index_with_join_columns</span><span class="o">.</span><span class="n">index</span>
+
+        <span class="n">processed_df</span><span class="p">[</span><span class="n">matching_new_columns</span><span class="p">]</span> <span class="o">=</span> <span class="n">processed_df</span><span class="p">[</span><span class="n">matching_new_columns</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+            <span class="nb">str</span><span class="p">)</span>
+        <span class="n">correct_index_with_join_columns</span><span class="p">[</span><span class="n">base_columns</span><span class="p">]</span> <span class="o">=</span> <span class="n">correct_index_with_join_columns</span><span class="p">[</span><span class="n">base_columns</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+            <span class="nb">str</span><span class="p">)</span>
+
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">processed_df</span><span class="p">,</span> <span class="n">correct_index_with_join_columns</span><span class="p">,</span>
+                      <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="n">base_columns</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="n">matching_new_columns</span><span class="p">)</span>
+        
+        <span class="c1"># Now the base_indices refering to the samples in the base dataset are the ones in the index column, created before.</span>
+        <span class="n">base_indices</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;__index__&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">drop_join_columns_afterwads</span><span class="p">:</span>
+            <span class="n">processed_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">matching_new_columns</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ProcessedDataset</span><span class="p">(</span><span class="n">processed_df</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">base_indices</span><span class="p">),</span> <span class="n">target_name</span><span class="o">=</span><span class="n">target_name</span><span class="p">,</span> <span class="n">categorical_mapping</span><span class="o">=</span><span class="n">categorical_mapping</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="ProcessedDataset.get_shacl_schema_validation_results"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.ProcessedDataset.get_shacl_schema_validation_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_shacl_schema_validation_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Constraint</span><span class="p">],</span> <span class="n">rename_columns</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">replace_non_applicable_nans</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">checker</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gives the shacl schema validation results for the given constraints. Performs the needed index-join with the sample-to-node-mapping.</span>
+<span class="sd">  </span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        constraints : List[Constraint]</span>
+<span class="sd">            The constraints, for which the shacl schema validation results are needed</span>
+<span class="sd">        rename_columns : boolean, optional</span>
+<span class="sd">            Renames the columns of shacl schema validation results to their constraint names, by default no renaming is done</span>
+<span class="sd">        replace_non_applicable_nans : boolean, optional</span>
+<span class="sd">            Replaces nan values with true, by default nans are not replaced. Normally entities not included in the target defintion of the target shape are marked with nan.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.Dataframe</span>
+<span class="sd">            The dataframe containing the shacl schema validation results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">get_shacl_schema_validation_results</span><span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_indices</span><span class="p">,</span> <span class="n">rename_columns</span><span class="o">=</span><span class="n">rename_columns</span><span class="p">,</span> <span class="n">replace_non_applicable_nans</span><span class="o">=</span><span class="n">replace_non_applicable_nans</span><span class="p">,</span> <span class="n">checker</span><span class="o">=</span><span class="n">checker</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="ProcessedDataset.get_sample_to_node_mapping"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.ProcessedDataset.get_sample_to_node_mapping">[docs]</a>    <span class="nd">@lru_cache</span>
+    <span class="k">def</span> <span class="nf">get_sample_to_node_mapping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the sample-to-node mapping.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.Dataframe</span>
+<span class="sd">            The DataFrame(*idx*, node_id) containg the sample-to-node mapping. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">get_sample_to_node_mapping</span><span class="p">(</span><span class="n">indices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_indices</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="ProcessedDataset.calculate_shacl_schema_valiation_results"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.ProcessedDataset.calculate_shacl_schema_valiation_results">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_shacl_schema_valiation_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Constraint</span><span class="p">],</span> <span class="n">checker</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the shacl schema validation results, such that each shacl schema is reduced and each shacl schema is only validated once. </span>
+<span class="sd">           The join with the sample-to-node mapping is not performed.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        constraints : list of Constraint</span>
+<span class="sd">            The list of constraints referring to the shacl schemas and target schemas needed to be validated over the knowledge graph</span>
+<span class="sd">        checker : Checker</span>
+<span class="sd">            If constraints include constraints of type PredictionConstraint the number of SHACL validation results needed can be further reduced by interleaving the constraint checking with the SHACL validation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">calculate_shacl_schema_valiation_results</span><span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="n">checker</span> <span class="o">=</span> <span class="n">checker</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="categories_to_numericals"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.categories_to_numericals">[docs]</a><span class="k">def</span> <span class="nf">categories_to_numericals</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Identifies categorical columns and converts all of them to numerical columns.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : _type_</span>
+<span class="sd">        _description_</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple of pandas.Dataframe, dict</span>
+<span class="sd">        The processed dataset and a categorical mapping documenting the replacements done, to convert categorical colums to numerical ones.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">converted_columns</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">cat_columns</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">([</span><span class="s1">&#39;category&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="n">object_columns</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">([</span><span class="s1">&#39;object&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+    <span class="n">uniques_per_column</span> <span class="o">=</span> <span class="p">{</span><span class="n">column</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">object_columns</span><span class="p">}</span>
+    <span class="n">uniques_per_column</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">column</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">cat_columns</span><span class="p">})</span>
+
+    <span class="c1"># 1.) Identify columns of dtype object or categorical only including numerical values and change the dtype accordingly</span>
+    <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">uniques_per_column</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">str</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">uniques_per_column</span><span class="p">[</span><span class="n">column</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+            <span class="n">converted_columns</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+
+    <span class="n">cat_columns</span> <span class="o">=</span> <span class="n">cat_columns</span> <span class="o">-</span> <span class="n">converted_columns</span>
+
+    <span class="c1"># 2.) The rest of the columns of dtype object should be categorical</span>
+    <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">object_columns</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">converted_columns</span><span class="p">):</span>
+        <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">CategoricalDtype</span><span class="p">(</span><span class="n">categories</span><span class="o">=</span><span class="n">uniques_per_column</span><span class="p">[</span><span class="n">column</span><span class="p">]))</span>        
+        <span class="n">cat_columns</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+
+    <span class="c1"># 3.) Convert all categoricals to numericals</span>
+    <span class="n">cat_columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cat_columns</span><span class="p">)</span>
+    <span class="n">mappings</span> <span class="o">=</span> <span class="p">{</span><span class="n">column</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">codes</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]))</span>
+                <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">cat_columns</span><span class="p">}</span>
+
+    <span class="n">df</span><span class="p">[</span><span class="n">cat_columns</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cat_columns</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">codes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">mappings</span></div>
+
+
+<div class="viewcode-block" id="get_valid_indices"><a class="viewcode-back" href="../../validating_models.dataset.html#validating_models.dataset.get_valid_indices">[docs]</a><span class="k">def</span> <span class="nf">get_valid_indices</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">constraints</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given the dataset and a list of contraints this method will compute the indices of the dataset, belonging to entries, which are valid w.r.t. all given constraints. </span>
+<span class="sd">    If a constraint involves the target the ground truth value in the dataset is used.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dataset : BaseDataset or ProcessedDataset</span>
+<span class="sd">        The dataset</span>
+<span class="sd">    constraints : list of constraints</span>
+<span class="sd">        The list of constraints</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of int</span>
+<span class="sd">        the indices of the entries valid w.r.t. the constraints</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.checker</span> <span class="kn">import</span> <span class="n">Checker</span>
+    <span class="n">checker</span> <span class="o">=</span> <span class="n">Checker</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">use_gt</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">validation_results</span> <span class="o">=</span> <span class="n">checker</span><span class="o">.</span><span class="n">get_constraint_validation_result</span><span class="p">(</span>
+        <span class="n">constraints</span><span class="p">)</span>
+    <span class="n">valid_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">validation_results</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">constraints</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">valid_idx</span></div>
+</pre></div>
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+<footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2022, Julian Gercke.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>

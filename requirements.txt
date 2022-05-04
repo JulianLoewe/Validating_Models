@@ -1,0 +1,37 @@
+# Core
+cairosvg
+docutils
+dtreeviz
+Jinja2
+matplotlib
+numpy
+openml
+pandas
+Pillow
+rdflib
+requests
+scikit_learn
+seaborn
+SPARQLWrapper
+tqdm
+pebble
+
+# shaclAPI
+Flask
+multiprocessing_logging
+pytest
+regex
+setuptools
+
+# Generation of the Documentation
+Sphinx
+pydata-sphinx-theme
+
+# Jupyter Notebooks
+notebook
+
+# Multiple Explanations Data
+tensorflow==2.8.0
+
+# Evaluation
+pyinstrument

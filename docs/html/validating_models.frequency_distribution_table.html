@@ -1,0 +1,463 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>validating_models.frequency_distribution_table module &#8212; Validating Models  documentation</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="validating_models.shacl_validation_engine module" href="validating_models.shacl_validation_engine.html" />
+    <link rel="prev" title="validating_models.drawing_utils module" href="validating_models.drawing_utils.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+<a class="navbar-brand" href="index.html">
+<p class="title">Validating Models</p>
+</a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 current active nav-item">
+ <a class="reference internal nav-link" href="modules.html">
+  validating_models
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="validating_models.html">
+   validating_models package
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="validating_models.groupings.html">
+     validating_models.groupings package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.groupings.classification.html">
+       validating_models.groupings.classification module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.groupings.decision_trees.html">
+       validating_models.groupings.decision_trees module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.groupings.general.html">
+       validating_models.groupings.general module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.groupings.random_forest.html">
+       validating_models.groupings.random_forest module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="validating_models.models.html">
+     validating_models.models package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.models.decision_tree.html">
+       validating_models.models.decision_tree module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.models.random_forest.html">
+       validating_models.models.random_forest module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="validating_models.visualizations.html">
+     validating_models.visualizations package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+    <label for="toctree-checkbox-4">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.visualizations.classification.html">
+       validating_models.visualizations.classification module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.visualizations.decision_trees.html">
+       validating_models.visualizations.decision_trees module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.visualizations.ensembles.html">
+       validating_models.visualizations.ensembles module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.visualizations.graphviz_helper.html">
+       validating_models.visualizations.graphviz_helper module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.visualizations.regression.html">
+       validating_models.visualizations.regression module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.checker.html">
+     validating_models.checker module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.colors.html">
+     validating_models.colors module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.constraint.html">
+     validating_models.constraint module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.dataset.html">
+     validating_models.dataset module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.drawing_utils.html">
+     validating_models.drawing_utils module
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     validating_models.frequency_distribution_table module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.shacl_validation_engine.html">
+     validating_models.shacl_validation_engine module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.stats.html">
+     validating_models.stats module
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+
+<nav id="bd-toc-nav">
+    
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="module-validating_models.frequency_distribution_table">
+<span id="validating-models-frequency-distribution-table-module"></span><h1>validating_models.frequency_distribution_table module<a class="headerlink" href="#module-validating_models.frequency_distribution_table" title="Permalink to this headline">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">validating_models.frequency_distribution_table.</span></span><span class="sig-name descname"><span class="pre">FrequencyDistributionTable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="validating_models.checker.html#validating_models.checker.Checker" title="validating_models.checker.Checker"><span class="pre">validating_models.checker.Checker</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="validating_models.constraint.html#validating_models.constraint.Constraint" title="validating_models.constraint.Constraint"><span class="pre">validating_models.constraint.Constraint</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_functions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">function</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_indices_groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coverage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_applicable_counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/frequency_distribution_table.html#FrequencyDistributionTable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Frequency distribution tables are used to summarize constraint validation results and visualize them accordingly.</p>
+<p>A table shows the different measurement categories and the number of observations per category.
+The measurement categories are constraints, the possible validation results and different groupings.
+The columns always have multiple hierachies, the first one refers to the different constraints and the second one to the different validation results (valid, invalid and not applicable).
+The index represents the division of the instances counted into the groups, when multiple group functions are given.</p>
+<p>Abstract definition of the function <img class="math" src="_images/math/21b1f4af021147bcd0fd9fbd844b0809855822fb.png" alt="\mathcal{F}_{G,C}"/> used to create the frequency distribution table (without the coverage option):
+The function <img class="math" src="_images/math/1e84b9566b3bf95b93b9bdc4d6936e407715681f.png" alt="\mathcal{F}_{G,C}: \mathcal{P}([1,...,N]) \times \mathbf{\Theta} \times \mathbf{\Gamma} \to \mathbb{N}^{|G| \times |\{-1,0,1\}|}"/>, where</p>
+<ul class="simple">
+<li><p><img class="math" src="_images/math/89878909dbb648acdc4a44ded1bd982d7bddef5d.png" alt="G"/> a set of arbitrary group identifiers</p></li>
+<li><p><img class="math" src="_images/math/4db5b6e16e06f929ce3f675c5e535d06ffb02ff7.png" alt="C"/> a constraint</p></li>
+<li><p><img class="math" src="_images/math/3bfb3a64189a14b2704f4610827762d5e3145114.png" alt="N"/> the number of samples in the given dataset</p></li>
+<li><p><img class="math" src="_images/math/f19af4d4013597bb654fe36e501dfdd3709749d4.png" alt="\mathbf{\Gamma}"/> is the endless space of grouping function <img class="math" src="_images/math/5a2fd372adc3ba17adc53db8c9e353bcc3d4ecdd.png" alt="\Gamma: G \to \mathcal{P}([1,...,N])"/></p></li>
+</ul>
+<p>maps a subset of the indices <img class="math" src="_images/math/7a018a615d24ae2e33d2dc65b5aa4a34c7ccb2e5.png" alt="D_{idx}"/> of a dataset <img class="math" src="_images/math/0fcab9067b50b87e868c4fd70f213a086addb964.png" alt="D"/>, a model validation result function <img class="math" src="_images/math/0ca257f28785d0cffe56c42f026168041226fc32.png" alt="\Theta"/> and a grouping function <img class="math" src="_images/math/e7003fd3463f843ee1e53385878369f078d362ad.png" alt="\Gamma"/> to a frequency distribution table.
+<img class="math" src="_images/math/f5742b0d8f0ba69b4b1c9707d2faad13382fd61d.png" alt="\mathcal{F}_{G,C}(D_{idx},\Theta, \Gamma) \mapsto F_{G,\{-1,0,1\}}^{C,D_{idx}}"/>
+where</p>
+<ul class="simple">
+<li><p><img class="math" src="_images/math/09fd81b2728fe78462c5770e004cecfc67b59ff1.png" alt="F_{G,\{-1,0,1\}}^{C,D_{idx}} = (|f_{g,v}^{C,D_{idx}}|)_{\substack{g \in G\ v \in \{-1,0,1\}}}"/></p></li>
+<li><p><img class="math" src="_images/math/f93688ea851f29ae1bf1b02c84d16928bfd21996.png" alt="f_{g,v}^{C,D_{idx}} = \{ i | i \in (D_{idx} \cap \Gamma(g)) \land \Theta(C,i) = v\}"/></p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>checker</strong> (<a class="reference internal" href="validating_models.checker.html#validating_models.checker.Checker" title="validating_models.checker.Checker"><em>validating_models.checker.Checker</em></a>) – The checker instance to be used to get the constraint validation results.</p></li>
+<li><p><strong>constraints</strong> (<em>list of validating_models.constraint.Constraint</em>) – The constraints to be checked.</p></li>
+<li><p><strong>indices</strong> (<em>list of int</em><em>, </em><em>optional</em>) – A list of indices referring to samples in the dataset, which should be used while creating the frequency distribution table.</p></li>
+<li><p><strong>group_functions</strong> (<em>list of group function</em><em> (</em><em>see validating_models.groupings</em><em>)</em>) – The list of group functions defining the groups based on the checker and the given indices.</p></li>
+<li><p><strong>coverage</strong> (<em>bool</em>) – Whether to use “Coverage” to only count the most important validation results. That is given that the grouping is non overlapping the entries of the frequency distribution table will sum to the number of indices given.</p></li>
+<li><p><strong>non_applicable_counts</strong> (<em>bool</em>) – Whether to use non applicable counts. The semantics depends on the type of the constraint.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.constraints_descriptor">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">constraints_descriptor</span></span><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.constraints_descriptor" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.constraint_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">constraint_names</span></span><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.constraint_names" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.group_names">
+<span class="sig-name descname"><span class="pre">group_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/frequency_distribution_table.html#FrequencyDistributionTable.group_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.group_names" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.group_descriptor">
+<span class="sig-name descname"><span class="pre">group_descriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/frequency_distribution_table.html#FrequencyDistributionTable.group_descriptor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.group_descriptor" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.categories_descriptor">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">categories_descriptor</span></span><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.categories_descriptor" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.category_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">category_names</span></span><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.category_names" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.get_colors">
+<span class="sig-name descname"><span class="pre">get_colors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hsv'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/frequency_distribution_table.html#FrequencyDistributionTable.get_colors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.get_colors" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.remove_only_zeros_columns">
+<span class="sig-name descname"><span class="pre">remove_only_zeros_columns</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/frequency_distribution_table.html#FrequencyDistributionTable.remove_only_zeros_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.remove_only_zeros_columns" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.normalize">
+<span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/frequency_distribution_table.html#FrequencyDistributionTable.normalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.normalize" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.denormalize">
+<span class="sig-name descname"><span class="pre">denormalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/frequency_distribution_table.html#FrequencyDistributionTable.denormalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.denormalize" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.get_validation_result_summary">
+<span class="sig-name descname"><span class="pre">get_validation_result_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentage_per_validation_result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/frequency_distribution_table.html#FrequencyDistributionTable.get_validation_result_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.get_validation_result_summary" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.matrix">
+<span class="sig-name descname"><span class="pre">matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'invalid'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fancy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[None,</span> <span class="pre">None]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/frequency_distribution_table.html#FrequencyDistributionTable.matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.matrix" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.frequency_distribution_table.FrequencyDistributionTable.visualize">
+<span class="sig-name descname"><span class="pre">visualize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level_to_visualize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation_methode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sum()'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DejaVu</span> <span class="pre">Sans'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/frequency_distribution_table.html#FrequencyDistributionTable.visualize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.frequency_distribution_table.FrequencyDistributionTable.visualize" title="Permalink to this definition">#</a></dt>
+<dd><p>Automated visualiztion of the frequency distribution table for one grouping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<em>str</em>) – The title to use for the visualization.</p></li>
+<li><p><strong>selected_groups</strong> (<em>label</em><em>, </em><em>slice</em><em>, </em><em>list</em><em>, </em><em>mask</em><em> or </em><em>a sequence of such</em>) – A selection of groups to be used. See pandas.MultiIndex.get_locs for examples.</p></li>
+<li><p><strong>level_to_visualize</strong> (<em>int</em>) – The level (group) to be visualized. A pandas groupby is performed on the given level.</p></li>
+<li><p><strong>aggregation_methode</strong> (<em>string</em>) – If there are multiple groupings the rest has to be aggregated.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scales the visualization accordingly, however it’s recommended to scale the visualiation while saving to file.</p></li>
+<li><p><strong>summary</strong> (<em>bool</em>) – Ignored (to be implemented in the feature)</p></li>
+<li><p><strong>additional_text</strong> (<em>str</em>) – Ignored (to be implemented in the feature)</p></li>
+<li><p><strong>figure_size</strong> (<em>(</em><em>int</em><em>, </em><em>int</em><em>)</em><em>, </em><em>optional</em>) – The size of the visualisation to be created. Normally the figure size can be determined automatically, use in case it fails.</p></li>
+<li><p><strong>type</strong> (<em>A type</em><em>, </em><em>optional</em>) – Force a specific type of visualization: Can be one of GroupedStackedHistogram, StackedHistogram or PieChart. See validating_models.drawing_utils.</p></li>
+<li><p><strong>fontname</strong> (<em>str</em><em>, </em><em>optional</em>) – The font to be used</p></li>
+<li><p><strong>fontsize</strong> (<em>int</em><em>, </em><em>optional</em>) – The size of the font to be used</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axis</em><em>, </em><em>optional</em>) – The axis to draw the visualization on.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="validating_models.drawing_utils.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">validating_models.drawing_utils module</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="validating_models.shacl_validation_engine.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">validating_models.shacl_validation_engine module</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+<footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2022, Julian Gercke.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>

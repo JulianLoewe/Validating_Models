@@ -1,0 +1,3 @@
+[submodule "shaclAPI"]
+	path = shaclAPI
+	url = git@github.com:JulianLoewe/shaclAPI.git

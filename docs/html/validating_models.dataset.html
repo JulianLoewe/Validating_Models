@@ -1,0 +1,817 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>validating_models.dataset module &#8212; Validating Models  documentation</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="validating_models.drawing_utils module" href="validating_models.drawing_utils.html" />
+    <link rel="prev" title="validating_models.constraint module" href="validating_models.constraint.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+<a class="navbar-brand" href="index.html">
+<p class="title">Validating Models</p>
+</a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 current active nav-item">
+ <a class="reference internal nav-link" href="modules.html">
+  validating_models
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="validating_models.html">
+   validating_models package
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="validating_models.groupings.html">
+     validating_models.groupings package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.groupings.classification.html">
+       validating_models.groupings.classification module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.groupings.decision_trees.html">
+       validating_models.groupings.decision_trees module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.groupings.general.html">
+       validating_models.groupings.general module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.groupings.random_forest.html">
+       validating_models.groupings.random_forest module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="validating_models.models.html">
+     validating_models.models package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.models.decision_tree.html">
+       validating_models.models.decision_tree module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.models.random_forest.html">
+       validating_models.models.random_forest module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="validating_models.visualizations.html">
+     validating_models.visualizations package
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+    <label for="toctree-checkbox-4">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.visualizations.classification.html">
+       validating_models.visualizations.classification module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.visualizations.decision_trees.html">
+       validating_models.visualizations.decision_trees module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.visualizations.ensembles.html">
+       validating_models.visualizations.ensembles module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.visualizations.graphviz_helper.html">
+       validating_models.visualizations.graphviz_helper module
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="validating_models.visualizations.regression.html">
+       validating_models.visualizations.regression module
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.checker.html">
+     validating_models.checker module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.colors.html">
+     validating_models.colors module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.constraint.html">
+     validating_models.constraint module
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     validating_models.dataset module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.drawing_utils.html">
+     validating_models.drawing_utils module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.frequency_distribution_table.html">
+     validating_models.frequency_distribution_table module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.shacl_validation_engine.html">
+     validating_models.shacl_validation_engine module
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="validating_models.stats.html">
+     validating_models.stats module
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+
+<nav id="bd-toc-nav">
+    
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="module-validating_models.dataset">
+<span id="validating-models-dataset-module"></span><h1>validating_models.dataset module<a class="headerlink" href="#module-validating_models.dataset" title="Permalink to this headline">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="validating_models.dataset.Dataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">validating_models.dataset.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical_mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#Dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.Dataset" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Abstract representation of a dataset, including the most important parameters about the dataset.</p>
+<p>A dataset used for suppervised learning consists of samples (x,y), where x is a set of features (the problem instance) and y is a label (the target).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – The dataset having the features and the target as columns.</p></li>
+<li><p><strong>target_name</strong> (<em>str</em>) – The name of the target.</p></li>
+<li><p><strong>categorical_mapping</strong> (<em>mapping of str to</em><em> (</em><em>mapping of int to str</em><em>)</em>) – Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.Dataset.x_data">
+<span class="sig-name descname"><span class="pre">x_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#Dataset.x_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.Dataset.x_data" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns the problem instances of the dataset (e.g. the dataset without the target)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>bool</em>) – Whethere to return a pandas.Dataframe.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>numpy.ndarray or pandas.Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.Dataset.y_data">
+<span class="sig-name descname"><span class="pre">y_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#Dataset.y_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.Dataset.y_data" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns the target values of the dataset (e.g. the dataset without the features)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>bool</em>) – Whethere to return a pandas.Dataframe.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>numpy.ndarray or pandas.Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="validating_models.dataset.Dataset.class_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">class_names</span></span><a class="headerlink" href="#validating_models.dataset.Dataset.class_names" title="Permalink to this definition">#</a></dt>
+<dd><p>The names of the classes of the target. In case of a regression task, this will return all unique values of the target.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The names of the classes of the target.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list of string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.Dataset.feature_range">
+<span class="sig-name descname"><span class="pre">feature_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#Dataset.feature_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.Dataset.feature_range" title="Permalink to this definition">#</a></dt>
+<dd><p>The numerical range of the given feature.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>feature</strong> (<em>str</em>) – The feature</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The numerical range of the given feature.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[numerical, numerical]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.Dataset.categorical_split">
+<span class="sig-name descname"><span class="pre">categorical_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#Dataset.categorical_split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.Dataset.categorical_split" title="Permalink to this definition">#</a></dt>
+<dd><p>Given the categorical mapping for the given feature two strings are returned. The first representing the categories assigned to values below x and the other categories above x.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>feature</strong> (<em>str</em>) – The feature</p></li>
+<li><p><strong>x</strong> (<em>float</em>) – The split value</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str, str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.Dataset.is_categorical">
+<span class="sig-name descname"><span class="pre">is_categorical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#Dataset.is_categorical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.Dataset.is_categorical" title="Permalink to this definition">#</a></dt>
+<dd><p>Whether a feature is included in the categorical mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>feature</strong> (<em>str</em>) – The feature</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.Dataset.get_sample_to_node_mapping">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_sample_to_node_mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#Dataset.get_sample_to_node_mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.Dataset.get_sample_to_node_mapping" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.Dataset.convert_to_numerical">
+<span class="sig-name descname"><span class="pre">convert_to_numerical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#Dataset.convert_to_numerical"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.Dataset.convert_to_numerical" title="Permalink to this definition">#</a></dt>
+<dd><p>Given the name of a column in the dataset, the column is converted inplace to a numerical. This methode also updates the cateogical_mapping attribute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>column</strong> (<em>str</em>) – The name of the column to be converted</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">validating_models.dataset.</span></span><span class="sig-name descname"><span class="pre">BaseDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed_query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_to_node_mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">communicator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="validating_models.shacl_validation_engine.html#validating_models.shacl_validation_engine.Communicator" title="validating_models.shacl_validation_engine.Communicator"><span class="pre">validating_models.shacl_validation_engine.Communicator</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_schema_validation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical_mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#BaseDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.BaseDataset" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#validating_models.dataset.Dataset" title="validating_models.dataset.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">validating_models.dataset.Dataset</span></code></a></p>
+<p>The BaseDataset extends the Dataset by providing the capabilities to create the dataset based on a knowledge graph and by doing so extract a mapping from each sample to a seed node (IRI / URI) in the knowledge graph.
+As the SHACL validation should be performed over the minimal number of instances, it’s useful to have a query only returning the IRIs of the seed nodes in the dataset. That is the seed_query.
+The seed_query refers to the seed nodes with the variable called seed_var.
+The SHACL validation is performed via a communicator and can be turned to random by setting random_schema_validation to true.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset.sample_to_node_mapping">
+<span class="sig-name descname"><span class="pre">sample_to_node_mapping</span></span><a class="headerlink" href="#validating_models.dataset.BaseDataset.sample_to_node_mapping" title="Permalink to this definition">#</a></dt>
+<dd><p>A DataFrame(<em>idx</em>, node_id) having the same index idx as the dataframe df storing the dataset and a column with the seed_var as name including all the seed node identifiers (IRI / URI). When SHACL validation is performed the joined SHACL valiation results, will be stored here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset.shacl_validation_results">
+<span class="sig-name descname"><span class="pre">shacl_validation_results</span></span><a class="headerlink" href="#validating_models.dataset.BaseDataset.shacl_validation_results" title="Permalink to this definition">#</a></dt>
+<dd><p>When validating a shacl schema the results are stored here. Entries are of the form f’{shacl_schema_directory}_{target_shape}’. The results are stored separate to avoid joining the different validation results for each seed node.
+Each entry is a DataFrame(<em>node_id</em>, validation_result)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict of pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset.seed_var">
+<span class="sig-name descname"><span class="pre">seed_var</span></span><a class="headerlink" href="#validating_models.dataset.BaseDataset.seed_var" title="Permalink to this definition">#</a></dt>
+<dd><p>The variable in seed_query and in the sample_to_node_mapping referring to the seed nodes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset.random_schema_validation">
+<span class="sig-name descname"><span class="pre">random_schema_validation</span></span><a class="headerlink" href="#validating_models.dataset.BaseDataset.random_schema_validation" title="Permalink to this definition">#</a></dt>
+<dd><p>Whether random results are used instead of the SHACL valiation results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset.communicator">
+<span class="sig-name descname"><span class="pre">communicator</span></span><a class="headerlink" href="#validating_models.dataset.BaseDataset.communicator" title="Permalink to this definition">#</a></dt>
+<dd><p>The communicator object used to communication with the SHACL validation engine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="validating_models.shacl_validation_engine.html#validating_models.shacl_validation_engine.Communicator" title="validating_models.shacl_validation_engine.Communicator">validating_models.shacl_validation_engine.Communicator</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset.seed_query">
+<span class="sig-name descname"><span class="pre">seed_query</span></span><a class="headerlink" href="#validating_models.dataset.BaseDataset.seed_query" title="Permalink to this definition">#</a></dt>
+<dd><p>The SPARQL query returning the seed nodes used to create the dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – The dataset having the features and the target as columns.</p></li>
+<li><p><strong>target_name</strong> (<em>str</em>) – The name of the target.</p></li>
+<li><p><strong>categorical_mapping</strong> (<em>mapping of str to</em><em> (</em><em>mapping of int to str</em><em>)</em><em>, </em><em>optional</em>) – Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</p></li>
+<li><p><strong>seed_query</strong> (<em>str</em>) – The SPARQL query returning the seed nodes used to create the dataset.</p></li>
+<li><p><strong>seed_var</strong> (<em>str</em>) – The variable in seed_query and in the sample_to_node_mapping referring to the seed nodes</p></li>
+<li><p><strong>sample_to_node_mapping</strong> (<em>pandas.DataFrame</em>) – A DataFrame(<em>idx</em>, node_id) having the same index idx as the dataframe df storing the dataset and a column with the seed_var as name including all the seed node identifiers (IRI / URI).</p></li>
+<li><p><strong>communicator</strong> (<a class="reference internal" href="validating_models.shacl_validation_engine.html#validating_models.shacl_validation_engine.Communicator" title="validating_models.shacl_validation_engine.Communicator"><em>validating_models.shacl_validation_engine.Communicator</em></a>) – The communicator object to use for the communication with an SHACL validation engine</p></li>
+<li><p><strong>random_schema_validation</strong> (<em>bool</em>) – Whether to use random results instead of the SHACL valiation results.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset.from_knowledge_graph">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_knowledge_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_engine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="validating_models.shacl_validation_engine.html#validating_models.shacl_validation_engine.Communicator" title="validating_models.shacl_validation_engine.Communicator"><span class="pre">validating_models.shacl_validation_engine.Communicator</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'x'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed_query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ground_truth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">pandas.core.frame.DataFrame</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_data_query_results_to_df_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#BaseDataset.from_knowledge_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.BaseDataset.from_knowledge_graph" title="Permalink to this definition">#</a></dt>
+<dd><p>To create the dataset, while generating the task_example_to_node mapping, the dataset has to be retrieved from an endpoint by querying.
+This is the method, which has to be used if one doesn’t has the task_example_to_node mapping locally available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>endpoint</strong> (<em>str</em>) – The SPARQL endpoint</p></li>
+<li><p><strong>validation_engine</strong> (<a class="reference internal" href="validating_models.shacl_validation_engine.html#validating_models.shacl_validation_engine.Communicator" title="validating_models.shacl_validation_engine.Communicator"><em>validating_models.shacl_validation_engine.Communicator</em></a>) – The communicator object to use for the communication with an SHACL validation engine</p></li>
+<li><p><strong>data_query</strong> (<em>str</em>) – The used to extract the dataset, but at most the seed nodes (bound to ?x (!!))</p></li>
+<li><p><strong>seed_query</strong> (<em>str</em><em>, </em><em>optional</em>) – The query extracting all the seed nodes. Is inferred automatically from the data_query, but use incase of failure.</p></li>
+<li><p><strong>target_name</strong> – The name of the target.</p></li>
+<li><p><strong>ground_truth</strong> (<em>pandas.DataFrame</em><em>, </em><em>optional</em>) – If the ground_truth is not available in the knowledge graph a DataFrame(<em>seed_var</em>, target_name) can be provided, which will be joined with the dataset.</p></li>
+<li><p><strong>raw_data_query_results_to_df_hook</strong> (<em>Functional</em>) – The user may provide a custom methode to transform the raw sparql query results into the final dataframe. The seed nodes can be ignored here, but the order of the results need to be kept and all results have to be transformed into an sample.</p></li>
+<li><p><strong>args</strong> (<em>Further Arguments</em>) – Further Arguments to be passed to raw_data_query_results_to_df_hook.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset.calculate_shacl_schema_valiation_results">
+<span class="sig-name descname"><span class="pre">calculate_shacl_schema_valiation_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="validating_models.constraint.html#validating_models.constraint.Constraint" title="validating_models.constraint.Constraint"><span class="pre">validating_models.constraint.Constraint</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#BaseDataset.calculate_shacl_schema_valiation_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.BaseDataset.calculate_shacl_schema_valiation_results" title="Permalink to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Calculate the shacl schema validation results, such that each shacl schema is reduced and each shacl schema is only validated once.</dt><dd><p>The join with the sample-to-node mapping is not performed.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constraints</strong> (<em>list of Constraint</em>) – The list of constraints referring to the shacl schemas and target schemas needed to be validated over the knowledge graph</p></li>
+<li><p><strong>checker</strong> (<a class="reference internal" href="validating_models.checker.html#validating_models.checker.Checker" title="validating_models.checker.Checker"><em>Checker</em></a>) – If constraints include constraints of type PredictionConstraint the number of SHACL validation results needed can be further reduced by interleaving the constraint checking with the SHACL validation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset.get_shacl_schema_validation_results">
+<span class="sig-name descname"><span class="pre">get_shacl_schema_validation_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="validating_models.constraint.html#validating_models.constraint.Constraint" title="validating_models.constraint.Constraint"><span class="pre">validating_models.constraint.Constraint</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rename_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace_non_applicable_nans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#BaseDataset.get_shacl_schema_validation_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.BaseDataset.get_shacl_schema_validation_results" title="Permalink to this definition">#</a></dt>
+<dd><p>Gives the shacl schema validation results for the given constraints. Performs the needed index-join with the sample-to-node-mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constraints</strong> (<em>List</em><em>[</em><a class="reference internal" href="validating_models.constraint.html#validating_models.constraint.Constraint" title="validating_models.constraint.Constraint"><em>Constraint</em></a><em>]</em>) – The constraints, for which the shacl schema validation results are needed</p></li>
+<li><p><strong>indices</strong> (<em>list of int</em><em>, </em><em>optional</em>) – The indices for which the validation results are needed, by default all indices in the dataset</p></li>
+<li><p><strong>rename_columns</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Renames the columns of shacl schema validation results to their constraint names, by default no renaming is done</p></li>
+<li><p><strong>replace_non_applicable_nans</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Replaces nan values with true, by default nans are not replaced. Normally entities not included in the target defintion of the target shape are marked with nan.</p></li>
+<li><p><strong>checker</strong> (<a class="reference internal" href="validating_models.checker.html#validating_models.checker.Checker" title="validating_models.checker.Checker"><em>Checker</em></a>) – If constraints include constraints of type PredictionConstraint the number of SHACL validation results needed can be further reduced by interleaving the constraint checking with the SHACL validation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The dataframe containing the shacl schema validation results.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset.get_sample_to_node_mapping">
+<span class="sig-name descname"><span class="pre">get_sample_to_node_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#BaseDataset.get_sample_to_node_mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.BaseDataset.get_sample_to_node_mapping" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns the sample-to-node mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indices</strong> (<em>list of int</em><em>, </em><em>optional</em>) – the indices of interest, defaults to all indices</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The DataFrame(<em>idx</em>, node_id) containg the sample-to-node mapping.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.BaseDataset.get_result_iris">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_result_iris</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endpoint_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#BaseDataset.get_result_iris"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.BaseDataset.get_result_iris" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="validating_models.dataset.ProcessedDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">validating_models.dataset.</span></span><span class="sig-name descname"><span class="pre">ProcessedDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#validating_models.dataset.BaseDataset" title="validating_models.dataset.BaseDataset"><span class="pre">validating_models.dataset.BaseDataset</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#ProcessedDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.ProcessedDataset" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#validating_models.dataset.Dataset" title="validating_models.dataset.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">validating_models.dataset.Dataset</span></code></a></p>
+<p>The user of a BaseDataset ‘’base’’ may choose to extract the dataframe by calling base.df and choose to modify the features and targets (feature engineering). Also samples may be merged, dropped or duplicated.
+In that case the sample-to-node-mapping will be corrupted and need to be repaired. Keeping the mapping intact after performing operations like the one above is the task of this class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_df</strong> (<em>pandas.DataFrame</em>) – The processed dataset having the features and the target as columns.</p></li>
+<li><p><strong>base</strong> (<a class="reference internal" href="#validating_models.dataset.BaseDataset" title="validating_models.dataset.BaseDataset"><em>validating_models.dataset.BaseDataset</em></a>) – The BaseDataset originally used to create the Dataset, and includes the original sample-to-node mapping.</p></li>
+<li><p><strong>base_indices</strong> (<em>list of int</em>) – The indices of the BaseDataset, which belong to the new processed dataset. (If the index structure is kept intakt it’s simply list(processed_df.index))</p></li>
+<li><p><strong>target_name</strong> (<em>str</em>) – The name of the target.</p></li>
+<li><p><strong>categorical_mapping</strong> (<em>mapping of str to</em><em> (</em><em>mapping of int to str</em><em>)</em>) – Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.ProcessedDataset.from_unchanged_index">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_unchanged_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#validating_models.dataset.BaseDataset" title="validating_models.dataset.BaseDataset"><span class="pre">validating_models.dataset.BaseDataset</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#ProcessedDataset.from_unchanged_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.ProcessedDataset.from_unchanged_index" title="Permalink to this definition">#</a></dt>
+<dd><p>Creates the ProcessedDataset from a Dataframe with the index structure kept intact. For the datasets, this means that a given index refers to the semantically indentical samples (which therefor refer to the same seed node in the knowledge graph).
+E.g. <img class="math" src="_images/math/1fcbd43d1b443323659a6b1101a59a11d2770a0b.png" alt="\forall i ((\text{processed\_df}[i] \rightarrow seednode_1) \land (\text{base.df}[i] \rightarrow seednode_2)) \implies seednode_1 = seednode_2"/></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_df</strong> (<em>pd.DataFrame</em>) – The modified dataframe representing the dataset.</p></li>
+<li><p><strong>base</strong> (<a class="reference internal" href="#validating_models.dataset.BaseDataset" title="validating_models.dataset.BaseDataset"><em>BaseDataset</em></a>) – The origin of processed_df is base.df. Therefor base is the dataset directly created from the knowledge graph and contains the sample-to-node mapping.</p></li>
+<li><p><strong>target_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the column in processed_df refering to the target, optional</p></li>
+<li><p><strong>categorical_mapping</strong> (<em>mapping of str to</em><em> (</em><em>mapping of int to str</em><em>)</em><em>, </em><em>optional</em>) – Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The ProcessedDataset object with the correctly set base_indices.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#validating_models.dataset.ProcessedDataset" title="validating_models.dataset.ProcessedDataset">ProcessedDataset</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.ProcessedDataset.from_index_column">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_index_column</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#validating_models.dataset.BaseDataset" title="validating_models.dataset.BaseDataset"><span class="pre">validating_models.dataset.BaseDataset</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_column_afterwards</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#ProcessedDataset.from_index_column"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.ProcessedDataset.from_index_column" title="Permalink to this definition">#</a></dt>
+<dd><p>Works as from_unchanged_index but assumes the index copied to column before processing the dataframe. For example by using reset_index(drop=False) on base.df.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_df</strong> (<em>pd.DataFrame</em>) – The modified dataframe representing the dataset.</p></li>
+<li><p><strong>base</strong> (<a class="reference internal" href="#validating_models.dataset.BaseDataset" title="validating_models.dataset.BaseDataset"><em>BaseDataset</em></a>) – The origin of processed_df is base.df. Therefore base is the dataset directly created from the knowledge graph and contains the sample-to-node mapping.</p></li>
+<li><p><strong>column</strong> (<em>str</em>) – The index column.</p></li>
+<li><p><strong>target_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the column in processed_df refering to the target, optional</p></li>
+<li><p><strong>categorical_mapping</strong> (<em>mapping of str to</em><em> (</em><em>mapping of int to str</em><em>)</em><em>, </em><em>optional</em>) – Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</p></li>
+<li><p><strong>drop_column_afterwards</strong> – Whether to drop the specified column afterwards as the column is usually not needed afterwards. Defaults to True.</p></li>
+<li><p><strong>optional</strong> – Whether to drop the specified column afterwards as the column is usually not needed afterwards. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The ProcessedDataset object with the correctly set base_indices.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#validating_models.dataset.ProcessedDataset" title="validating_models.dataset.ProcessedDataset">ProcessedDataset</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.ProcessedDataset.from_node_unique_columns">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_node_unique_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.core.frame.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#validating_models.dataset.BaseDataset" title="validating_models.dataset.BaseDataset"><span class="pre">validating_models.dataset.BaseDataset</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matching_new_columns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_join_columns_afterwads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#ProcessedDataset.from_node_unique_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.ProcessedDataset.from_node_unique_columns" title="Permalink to this definition">#</a></dt>
+<dd><p>Creates the ProcessedDataset from a Dataframe by joining with the BaseDataset via base_columns = matching_new_columns and therefore reconstructing the sample-to-node mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>processed_df</strong> (<em>pd.DataFrame</em>) – The modified dataframe representing the dataset.</p></li>
+<li><p><strong>base</strong> (<a class="reference internal" href="#validating_models.dataset.BaseDataset" title="validating_models.dataset.BaseDataset"><em>BaseDataset</em></a>) – The origin of processed_df is base.df. Therefore base is the dataset directly created from the knowledge graph and contains the sample-to-node mapping.</p></li>
+<li><p><strong>base_columns</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – The columns to be used for joining in base.df.</p></li>
+<li><p><strong>matching_new_columns</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The columns to be used for joining in processed_df, by default base_columns</p></li>
+<li><p><strong>target_name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the column in processed_df refering to the target, optional</p></li>
+<li><p><strong>categorical_mapping</strong> (<em>mapping of str to</em><em> (</em><em>mapping of int to str</em><em>)</em><em>, </em><em>optional</em>) – Each feature/target can have an entry, which maps integer values of the feature/target to an meaningful description. (Especially useful for categorical features converted to numerical values.)</p></li>
+<li><p><strong>drop_join_columns_afterwads</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to drop the matching_new_columns in processed_df. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The ProcessedDataset object with the correctly set base_indices.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#validating_models.dataset.ProcessedDataset" title="validating_models.dataset.ProcessedDataset">ProcessedDataset</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.ProcessedDataset.get_shacl_schema_validation_results">
+<span class="sig-name descname"><span class="pre">get_shacl_schema_validation_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="validating_models.constraint.html#validating_models.constraint.Constraint" title="validating_models.constraint.Constraint"><span class="pre">validating_models.constraint.Constraint</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rename_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace_non_applicable_nans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#ProcessedDataset.get_shacl_schema_validation_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.ProcessedDataset.get_shacl_schema_validation_results" title="Permalink to this definition">#</a></dt>
+<dd><p>Gives the shacl schema validation results for the given constraints. Performs the needed index-join with the sample-to-node-mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constraints</strong> (<em>List</em><em>[</em><a class="reference internal" href="validating_models.constraint.html#validating_models.constraint.Constraint" title="validating_models.constraint.Constraint"><em>Constraint</em></a><em>]</em>) – The constraints, for which the shacl schema validation results are needed</p></li>
+<li><p><strong>rename_columns</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Renames the columns of shacl schema validation results to their constraint names, by default no renaming is done</p></li>
+<li><p><strong>replace_non_applicable_nans</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Replaces nan values with true, by default nans are not replaced. Normally entities not included in the target defintion of the target shape are marked with nan.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The dataframe containing the shacl schema validation results.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.ProcessedDataset.get_sample_to_node_mapping">
+<span class="sig-name descname"><span class="pre">get_sample_to_node_mapping</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#ProcessedDataset.get_sample_to_node_mapping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.ProcessedDataset.get_sample_to_node_mapping" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns the sample-to-node mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The DataFrame(<em>idx</em>, node_id) containg the sample-to-node mapping.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>pandas.Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="validating_models.dataset.ProcessedDataset.calculate_shacl_schema_valiation_results">
+<span class="sig-name descname"><span class="pre">calculate_shacl_schema_valiation_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="validating_models.constraint.html#validating_models.constraint.Constraint" title="validating_models.constraint.Constraint"><span class="pre">validating_models.constraint.Constraint</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#ProcessedDataset.calculate_shacl_schema_valiation_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.ProcessedDataset.calculate_shacl_schema_valiation_results" title="Permalink to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Calculate the shacl schema validation results, such that each shacl schema is reduced and each shacl schema is only validated once.</dt><dd><p>The join with the sample-to-node mapping is not performed.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constraints</strong> (<em>list of Constraint</em>) – The list of constraints referring to the shacl schemas and target schemas needed to be validated over the knowledge graph</p></li>
+<li><p><strong>checker</strong> (<a class="reference internal" href="validating_models.checker.html#validating_models.checker.Checker" title="validating_models.checker.Checker"><em>Checker</em></a>) – If constraints include constraints of type PredictionConstraint the number of SHACL validation results needed can be further reduced by interleaving the constraint checking with the SHACL validation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="validating_models.dataset.categories_to_numericals">
+<span class="sig-prename descclassname"><span class="pre">validating_models.dataset.</span></span><span class="sig-name descname"><span class="pre">categories_to_numericals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#categories_to_numericals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.categories_to_numericals" title="Permalink to this definition">#</a></dt>
+<dd><p>Identifies categorical columns and converts all of them to numerical columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>_type_</em>) – _description_</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The processed dataset and a categorical mapping documenting the replacements done, to convert categorical colums to numerical ones.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple of pandas.Dataframe, dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="validating_models.dataset.get_valid_indices">
+<span class="sig-prename descclassname"><span class="pre">validating_models.dataset.</span></span><span class="sig-name descname"><span class="pre">get_valid_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/validating_models/dataset.html#get_valid_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#validating_models.dataset.get_valid_indices" title="Permalink to this definition">#</a></dt>
+<dd><p>Given the dataset and a list of contraints this method will compute the indices of the dataset, belonging to entries, which are valid w.r.t. all given constraints.
+If a constraint involves the target the ground truth value in the dataset is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<a class="reference internal" href="#validating_models.dataset.BaseDataset" title="validating_models.dataset.BaseDataset"><em>BaseDataset</em></a><em> or </em><a class="reference internal" href="#validating_models.dataset.ProcessedDataset" title="validating_models.dataset.ProcessedDataset"><em>ProcessedDataset</em></a>) – The dataset</p></li>
+<li><p><strong>constraints</strong> (<em>list of constraints</em>) – The list of constraints</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the indices of the entries valid w.r.t. the constraints</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="validating_models.constraint.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">validating_models.constraint module</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="validating_models.drawing_utils.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">validating_models.drawing_utils module</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+<footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2022, Julian Gercke.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>
