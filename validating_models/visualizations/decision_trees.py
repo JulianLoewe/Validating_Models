@@ -207,7 +207,7 @@ def generate_internal_plot(node, prepare_plotting, shadow_tree, checker, constra
             node_title = node_title + \
                 f' Prediction: {myround(prediction)}'
     if shadow_tree.is_classifier():
-        fdt = FrequencyDistributionTable(checker, constraints, node_samples[node.id], group_by, all_indices_groups=node_samples, coverage=coverage, non_applicable_counts=non_applicable_counts, node=node)
+        fdt = FrequencyDistributionTable(checker, constraints, node_samples[node.id], group_by, all_indices_groups=node_samples, coverage=coverage, non_applicable_counts=non_applicable_counts, node=node, only_cached_results=True)
         
         if prepare_plotting:
             if group_by == group_by_node_split_feature:
@@ -218,7 +218,7 @@ def generate_internal_plot(node, prepare_plotting, shadow_tree, checker, constra
         plot = fdt.visualize(node_title)
     else:
         if coverage or len(constraints) > 1:
-            fdt = FrequencyDistributionTable(checker, constraints, node_samples[node.id], group_by, all_indices_groups=node_samples, coverage=coverage, non_applicable_counts=non_applicable_counts, node=node)
+            fdt = FrequencyDistributionTable(checker, constraints, node_samples[node.id], group_by, all_indices_groups=node_samples, coverage=coverage, non_applicable_counts=non_applicable_counts, node=node, only_cached_results=True)
             
             if prepare_plotting:
                 if group_by == group_by_node_split_feature:
@@ -248,7 +248,7 @@ def generate_leaf_plot(node, prepare_plotting, shadow_tree, checker, constraints
             node, checker, constraints[0], fontsize=label_fontsize, non_applicable_counts=non_applicable_counts)
         plot.title(node_title)
     else:
-        fdt = FrequencyDistributionTable(checker, constraints, node_samples[node.id], leaf_grouping_function, all_indices_groups=node_samples, coverage=coverage, non_applicable_counts=non_applicable_counts, node=node)
+        fdt = FrequencyDistributionTable(checker, constraints, node_samples[node.id], leaf_grouping_function, all_indices_groups=node_samples, coverage=coverage, non_applicable_counts=non_applicable_counts, node=node, only_cached_results=True)
         if prepare_plotting:
             return fdt, node_title, None, None, None, None, f"{path}/leaf{node.id}_{pid}.svg"
         plot = fdt.visualize(node_title)
@@ -520,7 +520,7 @@ def dtreeviz(model,
             np.where((checker.dataset.x_data() == np.array(X)).all(axis=-1))[0])
 
         fdt = FrequencyDistributionTable(checker, constraints, idx, leaf_grouping_function,
-                                         coverage=coverage, non_applicable_counts=non_applicable_counts)
+                                         coverage=coverage, non_applicable_counts=non_applicable_counts, only_cached_results=True)
         plot = fdt.visualize('')
         plot.save(f"{tmp}/validation_result_{os.getpid()}.svg")
         append_labels_handles([extract_labels_handles(plot)])
@@ -571,6 +571,9 @@ def dtreeviz(model,
     edges = []
     # non leaf edges with > and <=
     for node in internal_nodes:
+        if depth_range_to_display is not None:
+            if node.level not in range(depth_range_to_display[0], depth_range_to_display[1]):
+                continue
         nname = node_name(node)
         if node.left.isleaf():
             left_node_name = 'leaf%d' % node.left.id

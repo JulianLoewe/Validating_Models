@@ -13,7 +13,7 @@ TRUTH_VALUES = [-1, 0, 1]
 
 TRUTH_LABELS = [TRUTH_VALUE_TO_STRING[value] for value in TRUTH_VALUES]
 
-USE_CHECKSUM = True
+USE_CHECKSUM = False
 
 class Constraint(ABC):
 
@@ -81,7 +81,7 @@ class Constraint(ABC):
         pass
 
     @abstractproperty
-    def constraint_identifier(self):
+    def identifier(self):
         pass
 
 class PredictionConstraint(Constraint):
@@ -105,8 +105,11 @@ class PredictionConstraint(Constraint):
         return 'target' in self.expr or 'target' in self.condition
 
     @property
-    def constraint_identifier(self):
-        return Constraint.md5_checksum(self.shape_schema_dir, self.target_shape, str(type(self)) + self.condition + self.expr)
+    def identifier(self):
+        if USE_CHECKSUM:
+            return Constraint.md5_checksum(self.shape_schema_dir, self.target_shape, str(type(self)) + self.condition + self.expr)
+        else:
+            return self.name
 
     def uses_feature(self, column_name):
         return column_name in self.expr or column_name in self.condition
@@ -154,8 +157,11 @@ class ShaclSchemaConstraint(Constraint):
         return val_results
 
     @property
-    def constraint_identifier(self):
-        return Constraint.md5_checksum(self.shape_schema_dir, self.target_shape, str(type(self)))
+    def identifier(self):
+        if USE_CHECKSUM:
+            return Constraint.md5_checksum(self.shape_schema_dir, self.target_shape, str(type(self)))
+        else:
+            return self.name
 
     @property
     def uses_target(self):

@@ -53,9 +53,11 @@ class FrequencyDistributionTable:
         Whether to use "Coverage" to only count the most important validation results. That is given that the grouping is non overlapping the entries of the frequency distribution table will sum to the number of indices given.
     non_applicable_counts : bool
         Whether to use non applicable counts. The semantics depends on the type of the constraint.
+    only_cached_results : bool, optional
+        When set to true constraints are assumed to be already validated once, with this checker instance. There the validation step can be skipped. Defaults to False.
     '''
 
-    def __init__(self, checker: Checker, constraints: List[Constraint], indices: List[int], group_functions: List[FunctionType], all_indices_groups=None, coverage=False, non_applicable_counts=False, **args) -> None:
+    def __init__(self, checker: Checker, constraints: List[Constraint], indices: List[int], group_functions: List[FunctionType], all_indices_groups=None, coverage=False, non_applicable_counts=False, only_cached_results=False, **args) -> None:
         self._constraints = constraints
 
         if indices == None:
@@ -81,7 +83,7 @@ class FrequencyDistributionTable:
             group_functions = [group_functions]
 
         self.fdt = checker.get_fdt(constraints=constraints, indices=self._indices, group_functions=group_functions,
-                                   coverage=coverage, non_applicable_counts=non_applicable_counts, **args)
+                                   coverage=coverage, non_applicable_counts=non_applicable_counts,only_cached_results=only_cached_results, **args)
 
         self._full_fdt = self.fdt
         self.is_coverage = coverage

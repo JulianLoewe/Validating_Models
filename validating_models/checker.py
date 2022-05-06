@@ -84,7 +84,7 @@ class Checker:
             target = self.get_target(df=True)
             explaination['predictions' if not self._use_gt else 'gt'] = target # Dataset Index NOT Included
         
-        explaination['Constraint Validation Result'] = self.constraint_validation_results[constraint.name].values
+        explaination['Constraint Validation Result'] = self.constraint_validation_results[constraint.identifier].values
 
 
         if task_example_indices != None:
@@ -100,11 +100,12 @@ class Checker:
         return explaination
     
     def pre_evaluate_expression(self, constraint: Constraint) -> np.ndarray:
+        constraint_identifier = constraint.identifier
         if not isinstance(constraint, PredictionConstraint):
             return None
-        if constraint.name not in self._pre_evaluated_expressions:
-            self._pre_evaluated_expressions.loc[:,constraint.name] = constraint.eval_expr(self.get_target(), self.dataset)
-        return self._pre_evaluated_expressions[constraint.name].values
+        if constraint_identifier not in self._pre_evaluated_expressions:
+            self._pre_evaluated_expressions.loc[:,constraint_identifier] = constraint.eval_expr(self.get_target(), self.dataset)
+        return self._pre_evaluated_expressions[constraint_identifier].values
 
 
     def validate(self, constraints: List[Constraint]):
@@ -124,12 +125,12 @@ class Checker:
                 The constraint to be validated.
         '''
         target = self.get_target()
-
-        if constraint.name not in self.constraint_validation_results:
+        constraint_identifier = constraint.identifier
+        if constraint_identifier not in self.constraint_validation_results:
             pre_evaluated_expression = self.pre_evaluate_expression(constraint)
-            self.constraint_validation_results.loc[:, constraint.name] = constraint.eval(target, self.dataset, pre_evaluated_expr=pre_evaluated_expression )
+            self.constraint_validation_results.loc[:, constraint_identifier] = constraint.eval(target, self.dataset, pre_evaluated_expr=pre_evaluated_expression )
 
-    def get_constraint_validation_result(self, constraints, non_applicable_counts=False, df=False):
+    def get_constraint_validation_result(self, constraints, non_applicable_counts=False, df=False, only_cached_results=False):
         '''Gives the constraint validation results for a given set of constraints
 
         Parameters
@@ -138,16 +139,19 @@ class Checker:
                 The constraints to be validated.
             non_applicable_counts : bool, optional
                 If set to true, a three-valued logic is used. Task-examples not satisfing the shape schema of the constraint can be differentiated from the ones satisfing the shape schema and the logical expression defined in the constraint. The first ones are marked as non_applicable and only the later ones are marked as valid. If set to false there is only valid or invalid. The constraints are treated as implication with the normal two-valued logic.
+            only_cached_results : bool, optional
+                When set to true constraints are assumed to be already validated once, with this checker instance. There the validation step can be skipped. Defaults to False.
 
         Returns
         -------
             np.ndarry of shape (#instances, #constraints)
                 The validation results.
         '''
-        self.validate(constraints)
+        if not only_cached_results:
+            self.validate(constraints)
 
-        constraint_names = [constraint.name for constraint in constraints]
-        validation_result_df = self.constraint_validation_results[constraint_names].copy(
+        constraint_identifiers = [constraint.identifier for constraint in constraints]
+        validation_result_df = self.constraint_validation_results[constraint_identifiers].copy(
             deep=True)
 
         if not non_applicable_counts:
@@ -158,7 +162,7 @@ class Checker:
         else:
             return validation_result_df.values
 
-    def get_valid_invalid_counts_for_indices(self, constraints: list, indices=None, non_applicable_counts=False):
+    def get_valid_invalid_counts_for_indices(self, constraints: list, indices=None, non_applicable_counts=False, only_cached_results = False):
         '''Returns three counts for each constraint: the count of valid instances, the count of invalid instances and optionally the count of non applicable instances. The instances are choosen according to the given indices of the dataset.
 
         Parameters
@@ -169,6 +173,8 @@ class Checker:
                 The list of indices to select the instances of the dataset. None will select all instances in the dataset.
             non_applicable_counts : bool, optional
                 If set to true, a three-valued logic is used. Task-examples not satisfing the shape schema of the constraint can be differentiated from the ones satisfing the shape schema and the logical expression defined in the constraint. The first ones are marked as non_applicable and only the later ones are marked as valid. If set to false there is only valid or invalid. The constraints are treated as implication with the normal two-valued logic.
+            only_cached_results : bool, optional
+                When set to true constraints are assumed to be already validated once, with this checker instance. There the validation step can be skipped. Defaults to False.
 
         Returns
         -------
@@ -177,10 +183,10 @@ class Checker:
         '''
         if indices != None:
             constraint_validation_result = self.get_constraint_validation_result(
-                constraints, non_applicable_counts=non_applicable_counts)[indices, :]  # shape: (len(indices), len(constraints))
+                constraints, non_applicable_counts=non_applicable_counts, only_cached_results=only_cached_results)[indices, :]  # shape: (len(indices), len(constraints))
         else:
             constraint_validation_result = self.get_constraint_validation_result(
-                constraints, non_applicable_counts=non_applicable_counts)
+                constraints, non_applicable_counts=non_applicable_counts, only_cached_results=only_cached_results)
 
         valid_count = np.count_nonzero(
             constraint_validation_result == 1, axis=0)
@@ -191,7 +197,7 @@ class Checker:
 
         return valid_count, invalid_count, non_applicable_count
 
-    def get_valid_invalid_counts_for_array_of_indices(self, constraints: list, array_of_indices: list, non_applicable_counts=False):
+    def get_valid_invalid_counts_for_array_of_indices(self, constraints: list, array_of_indices: list, non_applicable_counts=False, only_cached_results = False):
         '''Returns three counts for each constraint and for each array of indices: the count of valid instances, the count of invalid instances and optionally the count of non applicable instances. 
 
         Parameters
@@ -202,6 +208,8 @@ class Checker:
                 A list of lists of indices to select the instances of the dataset. Per list of indices the counts are returned.
             non_applicable_counts : bool, optional
                 If set to true, a three-valued logic is used. Task-examples not satisfing the shape schema of the constraint can be differentiated from the ones satisfing the shape schema and the logical expression defined in the constraint. The first ones are marked as non_applicable and only the later ones are marked as valid. If set to false there is only valid or invalid. The constraints are treated as implication with the normal two-valued logic.
+            only_cached_results : bool, optional
+                When set to true constraints are assumed to be already validated once, with this checker instance. There the validation step can be skipped. Defaults to False.
 
         Returns
         -------
@@ -215,24 +223,25 @@ class Checker:
 
         for i, indices in enumerate(array_of_indices):
             valid_count[i, :], invalid_count[i, :], non_applicable_count[i, :] = self.get_valid_invalid_counts_for_indices(
-                constraints, indices, non_applicable_counts=non_applicable_counts)
+                constraints, indices, non_applicable_counts=non_applicable_counts, only_cached_results=only_cached_results)
 
         return valid_count, invalid_count, non_applicable_count
 
-    def get_validation_coverage(self, constraints: list, not_covered=True):
+    def get_validation_coverage(self, constraints: list, not_covered=True, only_cached_results=False):
         '''
         coverage: instances models constraints[i] < instances models constraints[i-1] < instances not models constraint[i] < instances not models constraint[i-1]
         '''
-        cache_key = str([constraint.name for constraint in constraints]) + str(not_covered)
+        cache_key = str([constraint.identifier for constraint in constraints]) + str(not_covered)
         
         if cache_key in self._coverage_results_cache:
             logger.debug('Using Cached Coverage!')
             return self._coverage_results_cache[cache_key]
 
         logger.debug('Calculating Coverage')
-        self.validate(constraints)
+        if not only_cached_results:
+            self.validate(constraints)
         n_constraints = len(constraints)
-        validation_results = self.get_constraint_validation_result(list(reversed(constraints)), non_applicable_counts=not_covered)
+        validation_results = self.get_constraint_validation_result(list(reversed(constraints)), non_applicable_counts=not_covered, only_cached_results=only_cached_results)
         valid_mask = (validation_results == 1)
         invalid_mask = (validation_results == 0)
 
@@ -255,9 +264,9 @@ class Checker:
         self._coverage_results_cache[cache_key] = (coverage, constraint_id_mapping)
         return coverage, constraint_id_mapping
 
-    def get_coverage_counts_for_indices(self, constraints: list, indices: list, not_covered=True):
+    def get_coverage_counts_for_indices(self, constraints: list, indices: list, not_covered=True, only_cached_results=False):
         coverage, constraint_id_mapping = self.get_validation_coverage(
-            constraints, not_covered=not_covered)
+            constraints, not_covered=not_covered, only_cached_results=only_cached_results)
         coverage = coverage.loc[indices, :]
         index = pd.MultiIndex.from_product(
             [[0, 1], [float(i) for i in range(len(constraints))]])
@@ -268,18 +277,19 @@ class Checker:
             result = 0, counts.reindex(index, fill_value=0).unstack(fill_value=0), constraint_id_mapping
         return result
 
-    def get_coverage_counts_for_array_of_indices(self, constraints: list, array_of_indices: list, not_covered=True):
+    def get_coverage_counts_for_array_of_indices(self, constraints: list, array_of_indices: list, not_covered=True, only_cached_results=True):
         coverages = []
         for indices in array_of_indices:
             not_cov, counts, constraint_id_mapping = self.get_coverage_counts_for_indices(
-                constraints, indices, not_covered=not_covered)
+                constraints, indices, not_covered=not_covered, only_cached_results=only_cached_results)
             coverages.append((not_cov, counts))
         return coverages, constraint_id_mapping
 
     @time_generate_fdt
-    def get_fdt(self, constraints, indices, group_functions: List[FunctionType], coverage=False, non_applicable_counts=False, **args) -> pd.DataFrame:
+    def get_fdt(self, constraints, indices, group_functions: List[FunctionType], coverage=False, non_applicable_counts=False, only_cached_results=False, **args) -> pd.DataFrame:
 
-        self.validate(constraints)
+        if not only_cached_results:
+            self.validate(constraints)
 
         if indices == None:
             indices = list(range(len(self.dataset)))
@@ -307,7 +317,7 @@ class Checker:
 
         if coverage:
             list_of_coverage_results, constraint_id_mapping = self.get_coverage_counts_for_array_of_indices(
-                constraints, final_array_of_indices, not_covered=non_applicable_counts)  # list of
+                constraints, final_array_of_indices, not_covered=non_applicable_counts, only_cached_results=True)  # list of
             categories, _ = zip(
                 *list_of_coverage_results[0][1].stack().items())
             label_constraints = [constraint_id_mapping[label[1]] for label in categories] + ['']
@@ -322,7 +332,7 @@ class Checker:
 
         else:
             counts = np.stack(self.get_valid_invalid_counts_for_array_of_indices(constraints, final_array_of_indices,
-                              non_applicable_counts=non_applicable_counts))  # shape: (#categories, #groups, #constraints)
+                              non_applicable_counts=non_applicable_counts, only_cached_results=True))  # shape: (#categories, #groups, #constraints)
             # shape: (#groups, #constraints, #categories)
             counts = np.transpose(counts, axes=(1, 2, 0))
             counts = counts.reshape((len(group_index), len(constraints) * 3))
