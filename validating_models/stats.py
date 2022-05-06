@@ -68,7 +68,9 @@ class StatsCollector():
     def to_file(self, file, categories: list = None):
         self._receive()
         if categories:
-            self.stats[categories].to_csv(file, index=False,mode = 'a', header=not os.path.isfile(file))
+            include = list(set(self.stats).intersection(set(categories)))
+            if len(include) > 0:
+                self.stats[include].to_csv(file, index=False,mode = 'a', header=not os.path.isfile(file))
         else:
             self.stats.to_csv(file, index=False,mode = 'a', header=not os.path.isfile(file))
         self.hyperparameters.to_csv(f'{file}_hps.csv', index = False, mode = 'a', header=not os.path.isfile(f'{file}_hps.csv'))

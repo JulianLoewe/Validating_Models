@@ -1,15 +1,19 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 import json
 import numpy as np
 import pandas as pd
 import warnings
 from validating_models.stats import get_decorator
+from pathlib import Path
+import hashlib
 
 TRUTH_VALUE_TO_STRING = {-1: "not applicable", 0: "invalid", 1: "valid"}
 
 TRUTH_VALUES = [-1, 0, 1]
 
 TRUTH_LABELS = [TRUTH_VALUE_TO_STRING[value] for value in TRUTH_VALUES]
+
+USE_CHECKSUM = True
 
 class Constraint(ABC):
 
@@ -19,8 +23,24 @@ class Constraint(ABC):
         self.name = name
 
     @staticmethod
+    def md5_checksum(shape_schema_dir: str, target_shape: str, extra: str = ''):
+        paths = Path(shape_schema_dir).glob('**/*')
+        sorted_shape_files = sorted([path for path in paths if path.is_file()])
+        hash_md5 = hashlib.md5()
+        for file in sorted_shape_files:
+            with open(file, 'rb') as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    hash_md5.update(chunk)
+        extra = str(target_shape) + str(extra)
+        hash_md5.update(extra.encode(encoding='UTF-8', errors='ignore'))
+        return hash_md5.hexdigest()
+
+    @staticmethod
     def get_shacl_identifier(shape_schema_dir, target_shape):
-        return f'{shape_schema_dir}_{target_shape}' 
+        if USE_CHECKSUM:
+            return Constraint.md5_checksum(shape_schema_dir, target_shape)
+        else:
+            return f'{shape_schema_dir}_{target_shape}' 
     
     @property
     def shacl_identifier(self):
@@ -60,6 +80,10 @@ class Constraint(ABC):
     def eval(self, predictions: np.ndarray, dataset, pre_evaluated_expr: np.ndarray = None) -> pd.DataFrame:
         pass
 
+    @abstractproperty
+    def constraint_identifier(self):
+        pass
+
 class PredictionConstraint(Constraint):
     """ A constraint coupels the validation of a knowledge graph with a logical expression about the target of a predictive model.
 
@@ -79,6 +103,10 @@ class PredictionConstraint(Constraint):
     @property
     def uses_target(self):
         return 'target' in self.expr or 'target' in self.condition
+
+    @property
+    def constraint_identifier(self):
+        return Constraint.md5_checksum(self.shape_schema_dir, self.target_shape, str(type(self)) + self.condition + self.expr)
 
     def uses_feature(self, column_name):
         return column_name in self.expr or column_name in self.condition
@@ -124,6 +152,10 @@ class ShaclSchemaConstraint(Constraint):
         val_results = self.check_shacl_condition(dataset)
         val_results = val_results.map({False: 0, True: 1, np.nan: -1})
         return val_results
+
+    @property
+    def constraint_identifier(self):
+        return Constraint.md5_checksum(self.shape_schema_dir, self.target_shape, str(type(self)))
 
     @property
     def uses_target(self):
