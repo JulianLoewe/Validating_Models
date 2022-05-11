@@ -58,7 +58,7 @@ class Dataset(ABC):
         self.categorical_mapping = categorical_mapping
 
         # Target is always numerical
-        self.categorical_mapping[self.target_name] = {float(i):class_name for i, class_name in self.class_names.items()}
+        # self.categorical_mapping[self.target_name] = {float(i):class_name for i, class_name in self.class_names.items()}
 
         self._feature_range_cache = {}
         self.feature_names = list(self.df.columns)
@@ -118,9 +118,10 @@ class Dataset(ABC):
         list of string
             The names of the classes of the target.
         """
-        if not self.is_categorical(self.target_name):
-            self.categorical_mapping[self.target_name] = {i: class_name for i, class_name in enumerate(np.unique(self.y_data()))}
-        return self.categorical_mapping[self.target_name]
+        if self.target_name in self.categorical_mapping:
+            return self.categorical_mapping[self.target_name]
+        else:
+            return {i: class_name for i, class_name in enumerate(np.unique(self.y_data()))}
 
     @time_feature_range
     def feature_range(self, feature):
@@ -183,6 +184,7 @@ class Dataset(ABC):
         feature : str
             The feature
         """
+        print(f'{feature} is categorical {feature in self.categorical_mapping}')
         return feature in self.categorical_mapping
     
     @abstractmethod
