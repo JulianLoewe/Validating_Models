@@ -184,7 +184,6 @@ class Dataset(ABC):
         feature : str
             The feature
         """
-        print(f'{feature} is categorical {feature in self.categorical_mapping}')
         return feature in self.categorical_mapping
     
     @abstractmethod
