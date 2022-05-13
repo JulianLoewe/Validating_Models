@@ -1,3 +1,4 @@
+from re import X
 import numpy as np
 from typing import List, Union
 import tempfile
@@ -5,7 +6,7 @@ import os
 from sklearn.neighbors import KernelDensity
 
 from ..frequency_distribution_table import FrequencyDistributionTable
-from ..checker import Checker, DecisionNodeChecker
+from ..checker import Checker, ConstantModelChecker, DecisionNodeChecker
 from ..constraint import TRUTH_LABELS, Constraint
 from ..drawing_utils import Function, Scatter, extract_labels_handles, new_draw_legend
 from ..colors import VAL_COLORS, adjust_colors
@@ -132,8 +133,6 @@ def get_target_feature_for_node_plot(node: ShadowDecTreeNode,  # Feature_name / 
 
 
 def get_target_satisfaction_for_node_plot(node: ShadowDecTreeNode,
-                                          X_train: np.ndarray,
-                                          y_train: np.ndarray,
                                           checker: Checker,
                                           constraint: Constraint,
                                           non_applicable_counts: bool = False,
@@ -144,22 +143,21 @@ def get_target_satisfaction_for_node_plot(node: ShadowDecTreeNode,
     graph_colors = adjust_colors(graph_colors)
 
     figsize = (.75, .8)
-    y = y_train[get_single_node_samples(node)]
-
+    y = checker.dataset.y_data()[get_single_node_samples(node)]
     m = np.mean(y)
+    x = np.random.normal(size=y.shape, scale=0.5)
 
     constraint_validation_results = checker.get_constraint_validation_result(
         [constraint], non_applicable_counts=non_applicable_counts)[get_single_node_samples(node)]
     color_idx = constraint_validation_results + 1
-    plot = Scatter(constraint_validation_results, y, color_idx, figsize)
+    plot = Scatter(x, y, color_idx, figsize)
     plot.draw(colors=[VAL_COLORS[truth_value] for truth_value in TRUTH_LABELS], labels=[
               'not applicable', 'invalid', 'valid'])
 
     plot.ax.plot([-1, 1], [m, m], '--',
                  color=graph_colors['split_line'], linewidth=1)
 
-    text = f"n={node.nsamples()}\n{node.shadow_tree.target_name} = {node.prediction_name()}" if node.isleaf(
-    ) else f"n={node.nsamples()}"
+    text = f"n={node.nsamples()}"
     plot.set_xlabel(text)
     plot.ax.spines['bottom'].set_visible(False)
     plot.ax.set_xticks([])
@@ -188,9 +186,6 @@ def generate_node_plot(node, prepare_plotting = False, *args, **kwargs):
     return labels_handles
 
 def generate_internal_plot(node, prepare_plotting, shadow_tree, checker, constraints, non_applicable_counts, depth_range_to_display, coverage, use_node_predictions,label_fontsize, leaf_grouping_function, node_samples, path, pid):
-    if use_node_predictions:
-        checker = DecisionNodeChecker(
-            node, checker.dataset, use_gt=checker._use_gt)
     if len(constraints) == 1 or coverage:
         group_by = group_by_node_split_feature
         node_title = ''
@@ -244,7 +239,7 @@ def generate_leaf_plot(node, prepare_plotting, shadow_tree, checker, constraints
     else:
         node_title = f'Prediction: {myround(prediction)}'
     if not shadow_tree.is_classifier() and len(constraints) == 1 and not coverage:
-        plot = get_kde_plot(
+        plot = get_target_satisfaction_for_node_plot(
             node, checker, constraints[0], fontsize=label_fontsize, non_applicable_counts=non_applicable_counts)
         plot.title(node_title)
     else:
@@ -534,10 +529,20 @@ def dtreeviz(model,
     CHUNKSIZE = 1
     tasks_left = []
     futures = []
+
+    if use_node_predictions:
+        checker_per_prediction = {}
+        for y in np.unique(checker.dataset.y_data()):
+            checker_per_prediction[y] = ConstantModelChecker(y, checker.dataset, use_gt=checker._use_gt)
+            checker_per_prediction[y].validate(constraints)
+
     print(f'Using {mp.cpu_count() if visualize_in_parallel else 1} worker(s)!')
     with ProcessPool(max_workers=mp.cpu_count(),context=mp.get_context('spawn'), initializer=process_stats_initializer, initargs=get_process_stats_initalizer_args()) as pool:
         for i, node in enumerate(tqdm(nodes_to_plot)):
-            handles_or_args = generate_node_plot(node, visualize_in_parallel, shadow_tree, checker, constraints, non_applicable_counts, depth_range_to_display, coverage, use_node_predictions, label_fontsize, leaf_grouping_function, node_samples, tmp, os.getpid())
+            if use_node_predictions:
+                handles_or_args = generate_node_plot(node, visualize_in_parallel, shadow_tree, checker_per_prediction[node.shadow_tree.get_prediction(node.id)], constraints, non_applicable_counts, depth_range_to_display, coverage, use_node_predictions, label_fontsize, leaf_grouping_function, node_samples, tmp, os.getpid())
+            else:
+                handles_or_args = generate_node_plot(node, visualize_in_parallel, shadow_tree, checker, constraints, non_applicable_counts, depth_range_to_display, coverage, use_node_predictions, label_fontsize, leaf_grouping_function, node_samples, tmp, os.getpid())
             tasks_left.append(handles_or_args)
             if visualize_in_parallel and (i % CHUNKSIZE == 0 or i == len(nodes_to_plot)-1):
                 while len(tasks_left) != 0:
