@@ -211,7 +211,7 @@ def main():
                     order_by_cardinality_set = [False]
                 for order_by_cardinality in order_by_cardinality_set:
                     for k in range(NUM_REPS):
-                        join_strategie_experiment(f'{join_outer}-nnodes{n_nodes}-{k}',join_outer, n_nodes=n_nodes).result()
+                        join_strategie_experiment(f'{join_outer}-{order_by_cardinality}-nnodes{n_nodes}-{k}',join_outer, order_by_cardinality, n_nodes=n_nodes).result()
         
         for n_constraints in n_constraints_list:
             for join_outer in [False, True]:
@@ -221,7 +221,7 @@ def main():
                     order_by_cardinality_set = [False]
                 for order_by_cardinality in order_by_cardinality_set:
                     for k in range(NUM_REPS):
-                        join_strategie_experiment(f'{join_outer}-nconstraints{n_constraints}-{k}',join_outer, n_constraints=n_constraints).result()
+                        join_strategie_experiment(f'{join_outer}-{order_by_cardinality}-nconstraints{n_constraints}-{k}',join_outer, order_by_cardinality, n_constraints=n_constraints).result()
 
     elif args.experiment == "treevizParallelSerial":
         nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)
