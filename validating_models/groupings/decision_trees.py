@@ -1,8 +1,5 @@
 from ..groupings.general import group_by_feature
 from ..models.decision_tree import get_shadow_tree_from_checker, get_node_samples
-from validating_models.stats import get_decorator
-
-time_group_node_split = get_decorator('group_by_node_split_feature')
 
 ####################################################################
 # Grouping Functions to be used by frequency_distribution_table.py #
@@ -40,7 +37,6 @@ def group_by_decision_tree_leaves(checker, indices, model, **args):
 
     return groups, 'Leaves'
 
-@time_group_node_split
 def group_by_node_split_feature(checker, indices, node, **args):
     feature_name = node.feature_name()
     groups, _ = group_by_feature(checker, indices, feature_name, f_range=checker.dataset.feature_range(feature_name))

@@ -14,8 +14,8 @@ from abc import ABC, abstractmethod
 from validating_models.stats import get_decorator
 
 time_io = get_decorator('io')
-time_io_histogram = get_decorator('io histogram')
-time_io_piechart = get_decorator('io piechart')
+time_io_histogram = get_decorator('io_histogram')
+time_io_piechart = get_decorator('io_piechart')
 
 class Visualization(ABC):
     '''Abstract Class for representing a Visualization. 

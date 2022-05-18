@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 import numpy as np
 import pandas as pd
 from sklearn.datasets import make_classification
@@ -109,7 +110,7 @@ def exp_validating_models_dtreeviz(id, tree_classifier, checker, constraints,non
 def dtreeviz_experiment(id,visualize_in_parallel, max_depth = 5, n_classes=2, n_samples=4**10, n_nodes=4**10, n_constraints=5, fancy=True, coverage=True):
     from validating_models.stats import STATS_COLLECTOR 
     STATS_COLLECTOR.activate(hyperparameters=['visualize_in_parallel','max_depth','n_constraints','n_samples','n_nodes','fancy','coverage'])
-    STATS_COLLECTOR.new_run(hyperparameters=[visualize_in_parallel,max_depth, n_constraints, n_samples, n_nodes, fancy, coverage])
+    STATS_COLLECTOR.new_run(hyperparameters=[visualize_in_parallel, max_depth, n_constraints, n_samples, n_nodes, fancy, coverage])
 
     print(f'Running experiment {id} with [max_depth = {max_depth}, n_classes = {n_classes}, n_samples = {n_samples}, n_nodes = {n_nodes}, n_constraints = {n_constraints}, parallel = {visualize_in_parallel}, fancy = {fancy}, coverage = {coverage}]')
     
@@ -123,12 +124,12 @@ def dtreeviz_experiment(id,visualize_in_parallel, max_depth = 5, n_classes=2, n_
     STATS_COLLECTOR.to_file('parallel_vs_serial_times.csv')
 
 @concurrent.process(timeout=300, daemon=False)
-def samples_to_node_experiment(id,node_to_samples_non_optimized, node_to_samples_dont_convert_to_csc, max_depth = 5, n_samples = 4**10, n_classes = 2, n_nodes=4**10):
+def samples_to_node_experiment(id, node_to_samples_non_optimized, max_depth = 5, n_samples = 4**10, n_classes = 2, n_nodes=4**10):
     from validating_models.stats import STATS_COLLECTOR
-    STATS_COLLECTOR.activate(hyperparameters=['max_depth', 'n_samples', 'node_to_samples_non_optimized', 'node_to_samples_dont_convert_to_csc'])
-    STATS_COLLECTOR.new_run(hyperparameters=[max_depth, n_samples, node_to_samples_non_optimized, node_to_samples_dont_convert_to_csc])
+    STATS_COLLECTOR.activate(hyperparameters=['max_depth', 'n_samples', 'node_to_samples_non_optimized'])
+    STATS_COLLECTOR.new_run(hyperparameters=[max_depth, n_samples, node_to_samples_non_optimized])
 
-    print(f'Running experiment samples_to_node_experiment with [max_depth = {max_depth}, n_samples = {n_samples}, optimized = {not node_to_samples_non_optimized}, csc_conv = {not node_to_samples_dont_convert_to_csc}]')
+    print(f'Running experiment samples_to_node_experiment with [max_depth = {max_depth}, n_samples = {n_samples}, optimized = {not node_to_samples_non_optimized}]')
     
     dataset = create_dataset(n_samples, n_classes, n_nodes)
     tree_classifier = train_decision_tree(max_depth, n_samples, n_classes, dataset)
@@ -138,7 +139,7 @@ def samples_to_node_experiment(id,node_to_samples_non_optimized, node_to_samples
     from validating_models.models.decision_tree import get_node_samples
     profile(get_node_samples,id, skd_tree)
 
-    STATS_COLLECTOR.to_file('samples_to_node_times_test.csv')
+    STATS_COLLECTOR.to_file('samples_to_node_times.csv')
 
 @concurrent.process(timeout=300, daemon=False)
 def join_strategie_experiment(id, use_outer_join, order_by_cardinality, n_samples = 4**10, n_nodes = 4**10, n_constraints = 5, n_classes=2):
@@ -157,123 +158,108 @@ def join_strategie_experiment(id, use_outer_join, order_by_cardinality, n_sample
 #################################################################################################
 
 def main():
+    parser = ArgumentParser(description='Runs the specified experiment')
+    parser.add_argument('experiment', type=str)
+    args = parser.parse_args()
+
+
     NUM_REPS = 5
     
-    # dataset = create_dataset(200, 2, 200)
-    # x = dataset.x_data()
-    # y = dataset.y_data().squeeze()
-    # x_class_0 = x[(y == 0),:]
-    # x_class_1 = x[(y == 1),:]
+    if args.experiment == "VizDataset":
+        dataset = create_dataset(200, 2, 200)
+        x = dataset.x_data()
+        y = dataset.y_data().squeeze()
+        x_class_0 = x[(y == 0),:]
+        x_class_1 = x[(y == 1),:]
 
-    # import matplotlib.pyplot as plt
-    # plt.plot(x_class_0[:,0],x_class_0[:,1],'ro', label='Class 0')
-    # plt.plot(x_class_1[:,0],x_class_1[:,1], 'bo', label='Class 1')
-    # plt.ylabel('Feature 2')
-    # plt.xlabel('Feature 1')
-    # plt.legend()
-    # plt.savefig('artificial_dataset.png')
+        import matplotlib.pyplot as plt
+        plt.plot(x_class_0[:,0],x_class_0[:,1],'ro', label='Class 0')
+        plt.plot(x_class_1[:,0],x_class_1[:,1], 'bo', label='Class 1')
+        plt.ylabel('Feature 2')
+        plt.xlabel('Feature 1')
+        plt.legend()
+        plt.savefig('artificial_dataset.png')
 
+    elif args.experiment == "nodesamples":
+        nsamples_list = np.logspace(4,12, base=4, num = 20, dtype=np.int_)
+        max_depths = np.array([2,4,6,8,10])
+        for non_optimized in [False, True]:
+                for n_samples in nsamples_list:
+                    for max_depth in max_depths:
+                        for k in range(NUM_REPS):
+                            samples_to_node_experiment(f'node_samples_{non_optimized}_{n_samples}_{max_depth}_{k}', n_samples=n_samples, max_depth=max_depth, node_to_samples_non_optimized=non_optimized).result()
 
+    elif args.experiment == "join":    
+        nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)
+        n_nodes_list = np.linspace(4**4,4**11, num= 20, dtype=np.int_)
+        n_constraints_list = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
+        for n_samples in nsamples_list:
+            for join_outer in [False, True]:
+                if join_outer:
+                    order_by_cardinality_set = [True,False]
+                else:
+                    order_by_cardinality_set = [False]
+                for order_by_cardinality in order_by_cardinality_set:
+                    for k in range(NUM_REPS):
+                        join_strategie_experiment(f'{join_outer}-{order_by_cardinality}-nsamples{n_samples}-{k}',join_outer, order_by_cardinality, n_samples=n_samples).result()
+            
+        for n_nodes in n_nodes_list:
+            for join_outer in [False, True]:
+                if join_outer:
+                    order_by_cardinality_set = [True,False]
+                else:
+                    order_by_cardinality_set = [False]
+                for order_by_cardinality in order_by_cardinality_set:
+                    for k in range(NUM_REPS):
+                        join_strategie_experiment(f'{join_outer}-nnodes{n_nodes}-{k}',join_outer, n_nodes=n_nodes).result()
+        
+        for n_constraints in n_constraints_list:
+            for join_outer in [False, True]:
+                if join_outer:
+                    order_by_cardinality_set = [True,False]
+                else:
+                    order_by_cardinality_set = [False]
+                for order_by_cardinality in order_by_cardinality_set:
+                    for k in range(NUM_REPS):
+                        join_strategie_experiment(f'{join_outer}-nconstraints{n_constraints}-{k}',join_outer, n_constraints=n_constraints).result()
 
+    elif args.experiment == "treevizParallelSerial":
+        nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)
+        n_nodes_list = np.linspace(256,4**10, num= 20, dtype=np.int_)
+        n_constraints_list = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
+        max_depths = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13])
 
-    # Node Samples Experiment
-    # nsamples_list = np.logspace(4,12, base=4, num = 20, dtype=np.int_)
-    # max_depths = np.array([2,4,6,8,10])
-    # for non_optimized in [False, True]:
-    #     for dont_convert_to_csc in [False, True]:
-    #         for n_samples in nsamples_list:
-    #             for max_depth in max_depths:
-    #                 for k in range(NUM_REPS):
-    #                     if non_optimized and not dont_convert_to_csc: # Only the optimized approach supports csc conversion
-    #                         continue
-    #                     if not non_optimized and dont_convert_to_csc: # This would be artificial bad as the optimized approach needs the csc conversion
-    #                         continue
-    #                     result = samples_to_node_experiment(f'node_samples_{non_optimized}_{dont_convert_to_csc}_{n_samples}_{max_depth}_{k}', n_samples=n_samples, max_depth=max_depth, node_to_samples_non_optimized=non_optimized, node_to_samples_dont_convert_to_csc=dont_convert_to_csc)
-    #                     result.result()
-    
-    # Join Experiment
-    nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)
-    n_nodes_list = np.linspace(4**4,4**11, num= 20, dtype=np.int_)
-    n_constraints_list = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
-    for n_samples in nsamples_list:
-        for join_outer in [True]:
-            for order_by_cardinality in [False, True]:
+        for n_samples in nsamples_list:
+            for visualize_in_parallel in [False, True]:
                 for k in range(NUM_REPS):
-                    join_strategie_experiment(f'{join_outer}-{order_by_cardinality}-nsamples{n_samples}-{k}',join_outer, order_by_cardinality, n_samples=n_samples).result()
-    
-    # for n_nodes in n_nodes_list:
-    #     for join_outer in [False, True]:
-    #         for k in range(NUM_REPS):
-    #             join_strategie_experiment(f'{join_outer}-nnodes{n_nodes}-{k}',join_outer, n_nodes=n_nodes).result()
-    
-    # for n_constraints in n_constraints_list:
-    #     for join_outer in [False, True]:
-    #         for k in range(NUM_REPS):
-    #             join_strategie_experiment(f'{join_outer}-nconstraints{n_constraints}-{k}',join_outer, n_constraints=n_constraints).result()
+                    try:
+                        dtreeviz_experiment(f'{visualize_in_parallel}-nsamples{n_samples}-{k}',visualize_in_parallel, n_samples=n_samples).result()
+                    except Exception as e:
+                        print(e)
+        
+        for n_nodes in n_nodes_list:
+            for visualize_in_parallel in [False, True]:
+                for k in range(NUM_REPS):
+                    try:
+                        dtreeviz_experiment(f'{visualize_in_parallel}-nnodes{n_nodes}-{k}',visualize_in_parallel, n_nodes=n_nodes).result()
+                    except Exception as e:
+                        print(e)
+        
+        for n_constraints in n_constraints_list:
+            for visualize_in_parallel in [False, True]:
+                for k in range(NUM_REPS):
+                    try:
+                        dtreeviz_experiment(f'{visualize_in_parallel}-nconstraints{n_constraints}-{k}',visualize_in_parallel, n_constraints=n_constraints).result()
+                    except Exception as e:
+                        print(e)
 
-    # Parallel vs. Serial Experiment (with CSC)
-    # nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)
-    # n_nodes_list = np.linspace(256,4**10, num= 20, dtype=np.int_)
-    # n_constraints_list = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
-    # max_depths = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13])
-
-    # for n_samples in nsamples_list:
-    #     for visualize_in_parallel in [False, True]:
-    #         for k in range(NUM_REPS):
-    #             try:
-    #                 dtreeviz_experiment(f'{visualize_in_parallel}-nsamples{n_samples}-{k}',visualize_in_parallel, n_samples=n_samples).result()
-    #             except Exception as e:
-    #                 print(e)
-    
-    # for n_nodes in n_nodes_list:
-    #     for visualize_in_parallel in [False, True]:
-    #         for k in range(NUM_REPS):
-    #             try:
-    #                 dtreeviz_experiment(f'{visualize_in_parallel}-nnodes{n_nodes}-{k}',visualize_in_parallel, n_nodes=n_nodes).result()
-    #             except Exception as e:
-    #                 print(e)
-    
-    # for n_constraints in n_constraints_list:
-    #     for visualize_in_parallel in [False, True]:
-    #         for k in range(NUM_REPS):
-    #             try:
-    #                 dtreeviz_experiment(f'{visualize_in_parallel}-nconstraints{n_constraints}-{k}',visualize_in_parallel, n_constraints=n_constraints).result()
-    #             except Exception as e:
-    #                 print(e)
-
-    # for max_depth in max_depths:
-    #     for visualize_in_parallel in [False, True]:
-    #         for k in range(NUM_REPS):
-    #             try:
-    #                 dtreeviz_experiment(f'{visualize_in_parallel}-maxdepth{max_depth}-{k}',visualize_in_parallel, max_depth=max_depth).result()
-    #             except Exception as e:
-    #                 print(e)
-
-
-    # Overall No CSC Not parallel Experiement
-    # nsamples_list = np.logspace(4,12, base=4, num = 5, dtype=np.int_)
-    # n_nodes_list = np.logspace(4,12, base=4, num= 5, dtype=np.int_)
-    # max_depths = np.array([2,4,6,8,10])
-    # n_constraints_list = np.array([1,3,5,7,9])
-
-    # for n_samples in nsamples_list:
-    #     for n_nodes in n_nodes_list:
-    #         for max_depth in max_depths:
-    #             for n_constraints in n_constraints_list:
-    #                 for k in range(NUM_REPS):
-    #                     try:
-    #                         result = dtreeviz_experiment(f'{max_depth}_{n_constraints}_{n_samples}_{n_nodes}_{k}',n_samples=n_samples, n_nodes=n_nodes, max_depth=max_depth, n_constraints=n_constraints)
-    #                         result.result()
-    #                     except TimeoutError as error:
-    #                         print(f"{max_depth}_{n_constraints}_{n_samples}_{n_nodes}_{k} took longer than {error.args[1]} seconds")
-    #                     except ProcessExpired as error:
-    #                         print("%s. Exit code: %d" % (error, error.exitcode))
-    #                     except Exception as error:
-    #                         print("experiment raised %s" % error)
-    #                         print(error.traceback)  # Python's traceback of remote process
-    #                     except KeyboardInterrupt:
-    #                         result.cancel()
-    #                         exit()
+        for max_depth in max_depths:
+            for visualize_in_parallel in [False, True]:
+                for k in range(NUM_REPS):
+                    try:
+                        dtreeviz_experiment(f'{visualize_in_parallel}-maxdepth{max_depth}-{k}',visualize_in_parallel, max_depth=max_depth).result()
+                    except Exception as e:
+                        print(e)
 
 if __name__ == '__main__':
     main()

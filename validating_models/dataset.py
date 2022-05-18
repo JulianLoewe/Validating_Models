@@ -18,8 +18,7 @@ from rdflib.plugins import sparql
 from validating_models.stats import get_decorator, get_hyperparameter_value
 
 time_join = get_decorator('join')
-time_random_shacl_results = get_decorator('random shacl results')
-time_feature_range = get_decorator('feature range')
+time_shacl_schema_validation = get_decorator('shacl_schema_validation')
 
 MAX_INSTANCES_IN_FILTER = 200
 DATATYPE_TO_PANDAS_TYPE = {
@@ -123,7 +122,6 @@ class Dataset(ABC):
         else:
             return {i: class_name for i, class_name in enumerate(np.unique(self.y_data()))}
 
-    @time_feature_range
     def feature_range(self, feature):
         """The numerical range of the given feature.
 
@@ -404,11 +402,10 @@ class BaseDataset(Dataset):
 
         return BaseDataset(df, target_name, seed_query, seed_var, sample_to_node_mapping=sample_to_node_mapping, communicator=validation_engine)
     
-    @time_random_shacl_results
     def _generate_random_shacl_schema_validation_results(self, constraint):
         p = np.random.random_sample(size=(3,))
         p = p/p.sum()
-        random_val_results = np.random.choice([True, False, None], size=(len(self.unique_seed_nodes),),p = list(p))
+        random_val_results = np.random.choice(np.array([True, False, None]), size=(len(self.unique_seed_nodes),),p = list(p))
         return {constraint.target_shape: {node: random_val_results[i] for i,node in enumerate(self.unique_seed_nodes) if random_val_results[i] != None}}
 
     def _calculate_shacl_schema_validation_result(self, constraint: Constraint):
@@ -421,6 +418,7 @@ class BaseDataset(Dataset):
         
         self.shacl_validation_results[constraint.shacl_identifier] = pd.DataFrame.from_dict(val_results[constraint.target_shape], orient='index', columns=[constraint.shacl_identifier], dtype=bool) 
     
+    @time_shacl_schema_validation
     def calculate_shacl_schema_valiation_results(self, constraints: List[Constraint], checker = None):
         """Calculate the shacl schema validation results, such that each shacl schema is reduced and each shacl schema is only validated once. 
            The join with the sample-to-node mapping is not performed.
@@ -547,7 +545,6 @@ class BaseDataset(Dataset):
         self.calculate_shacl_schema_valiation_results(not_calculated_yet, checker = checker)
         
         if get_hyperparameter_value('use_outer_join'):
-            print('Using outer join to join multiple constraints')
             self.sample_to_node_mapping = self._outer_join_pandas(not_joined_yet)
         else:
             for identifier in not_joined_yet:
@@ -571,11 +568,13 @@ class BaseDataset(Dataset):
     
     @time_join
     def _index_join_pandas(self, what): # left outer join
+        print('Directly joining with the sample to node mapping!')
         joined_result = self.sample_to_node_mapping.join(self.shacl_validation_results[what], on=self.seed_var)
         return joined_result
     
     @time_join
     def _outer_join_pandas(self, what):
+        print('Using the outer join')
         if isinstance(what, list) and len(what) == 1:
             what = what.pop()
             return self.sample_to_node_mapping.join(self.shacl_validation_results[what], on=self.seed_var)
@@ -583,13 +582,14 @@ class BaseDataset(Dataset):
             return self.sample_to_node_mapping.join(self.shacl_validation_results[what], on=self.seed_var)
         else:
             if get_hyperparameter_value('order_by_cardinality'):
+                print('Ordering by cardinality')
                 what = sorted(what, key=lambda x: len(self.shacl_validation_results[x]), reverse=False)
-            print([len(self.shacl_validation_results[x]) for x in what])
+            print([(x, len(self.shacl_validation_results[x])) for x in what])
             first_key = what.pop() # shacl results are joined first with full outer join and afterwards joined with the mapping with a left outer join
             result = self.shacl_validation_results[first_key]
             for key in what:
                 result = result.join(self.shacl_validation_results[key], how='outer')
-            return self.sample_to_node_mapping.join(result)
+            return self.sample_to_node_mapping.join(result, on=self.seed_var)
             #return self.sample_to_node_mapping.join(self.shacl_validation_results[first_key].join([self.shacl_validation_results[key] for key in what], how='outer'), on=self.seed_var)
 
     def get_sample_to_node_mapping(self, indices=None):

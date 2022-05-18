@@ -15,6 +15,7 @@ from functools import lru_cache
 from validating_models.stats import get_decorator
 time_generate_histogram = get_decorator('viz_hist')
 time_generate_piechart = get_decorator('viz_pie')
+time_generate_grouped_histogram = get_decorator('viz_grouped_hist')
 
 class FrequencyDistributionTable:
     ''' Frequency distribution tables are used to summarize constraint validation results and visualize them accordingly. 
@@ -234,7 +235,7 @@ class FrequencyDistributionTable:
             labels = self.category_names
         else:
             raise Exception(
-                f'Frequency Distribution cannot be visualized with the a piechart')
+                f'Frequency Distribution cannot be visualized with a piechart')
 
         plot.draw(colors=colors, text=text, labels=labels)
         plot.title(title)
@@ -256,7 +257,7 @@ class FrequencyDistributionTable:
             bar_labels_title = self.constraints_descriptor
         else:
             raise Exception(
-                f'Frequency Distribution cannot be visualized with the a stacked histogram')
+                f'Frequency Distribution cannot be visualized with a stacked histogram')
 
         if figure_size == None:
             # StackedHistogram builds on GroupedStackedHistogram but without spaces between groups and 1 bar per group
@@ -275,7 +276,7 @@ class FrequencyDistributionTable:
             colors = [cm(i) for i in range(nconstraints)]
         else:
             raise Exception(
-                f'Frequency Distribution cannot be visualized with the a stacked histogram')
+                f'Frequency Distribution cannot be visualized with a stacked histogram')
 
         plot = StackedHistogram(
             data, figure_size=figure_size, fontname=fontname, fontsize=fontsize, ax=ax)
@@ -285,6 +286,7 @@ class FrequencyDistributionTable:
         plot.title(title)
         return plot
 
+    @time_generate_grouped_histogram
     def _visualize_with_grouped_stacked_histogram(self, title, figure_size, scale, fontname, fontsize, summary, additional_text, level, ax):
 
         if figure_size == None:

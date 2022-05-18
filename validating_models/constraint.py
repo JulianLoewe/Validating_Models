@@ -7,6 +7,8 @@ from validating_models.stats import get_decorator
 from pathlib import Path
 import hashlib
 
+time_eval = get_decorator('evaluation')
+
 TRUTH_VALUE_TO_STRING = {-1: "not applicable", 0: "invalid", 1: "valid"}
 
 TRUTH_VALUES = [-1, 0, 1]
@@ -64,20 +66,20 @@ class Constraint(ABC):
             result = np.ones_like(predictions, dtype=bool)
         return result
 
-    def check_shacl_condition(self, dataset):
+    def check_shacl_condition(self, shacl_schema_validation_results, num_samples):
         if not self.uses_shacl_constraint:
             # warnings.warn(
             #     f'Shape Network or Target Shape not given for constraint "{self.name}" only using condition!')
-            return pd.Series(np.ones((len(dataset), ), dtype=bool))
+            return pd.Series(np.ones((num_samples, ), dtype=bool))
         else:
-            return dataset.get_shacl_schema_validation_results([self])[self.shacl_identifier]
+            return shacl_schema_validation_results[self.shacl_identifier]
 
     @property
     def uses_shacl_constraint(self):
         return self.shape_schema_dir != None and self.target_shape != None
 
     @abstractmethod
-    def eval(self, predictions: np.ndarray, dataset, pre_evaluated_expr: np.ndarray = None) -> pd.DataFrame:
+    def eval(self, predictions: np.ndarray, shacl_schema_validation_results, problem_instances, pre_evaluated_expr: np.ndarray = None) -> pd.DataFrame:
         pass
 
     @abstractproperty
@@ -114,10 +116,11 @@ class PredictionConstraint(Constraint):
     def uses_feature(self, column_name):
         return column_name in self.expr or column_name in self.condition
 
-    def eval_expr(self, predictions: np.ndarray, dataset):
-        return self._eval_expr(self.expr, predictions, dataset.x_data(df=True))
+    def eval_expr(self, predictions: np.ndarray, problem_instances):
+        return self._eval_expr(self.expr, predictions, problem_instances)
 
-    def eval(self, predictions: np.ndarray, dataset, pre_evaluated_expr: np.ndarray = None) -> pd.DataFrame:
+    @time_eval
+    def eval(self, predictions: np.ndarray, shacl_schema_validation_results, problem_instances, pre_evaluated_expr: np.ndarray = None) -> pd.DataFrame:
         """
         Evaluates the Constraint according to the semantics of ^v-> in section 3.2.2.
 
@@ -127,18 +130,17 @@ class PredictionConstraint(Constraint):
             predictions : ndarray
                 For each datapoint x the prediction of the model M_theta(x)
         """
-        val_results = self.check_shacl_condition(dataset).fillna(value=True, inplace=False).values
-        problem_instances = dataset.x_data(df=True)
+        val_results = self.check_shacl_condition(shacl_schema_validation_results, len(predictions)).fillna(value=True, inplace=False).values
         evaluation_result = np.zeros_like(val_results, dtype=int)
         
         # Evaluate left-hand side of the constraint
-        evaluated_cond = self._eval_expr(self.condition,predictions,problem_instances)
+        evaluated_cond = self._eval_expr(self.condition,predictions, problem_instances)
         val_results = evaluated_cond & val_results
         val_results = val_results.astype(bool)
 
         # Evaluate right-hand side of the constraint
         if not isinstance(pre_evaluated_expr, np.ndarray):
-            evaluated_expr = self._eval_expr(self.expr,predictions,problem_instances)
+            evaluated_expr = self._eval_expr(self.expr,predictions, problem_instances)
         else:
             evaluated_expr = pre_evaluated_expr
 
@@ -151,8 +153,9 @@ class ShaclSchemaConstraint(Constraint):
     def __init__(self, name: str, shape_schema_dir: str = None, target_shape: str = None) -> None:
         super().__init__(name, shape_schema_dir, target_shape)
     
-    def eval(self, predictions: np.ndarray, dataset, pre_evaluated_expr: np.ndarray = None) -> pd.DataFrame:
-        val_results = self.check_shacl_condition(dataset)
+    @time_eval
+    def eval(self, predictions: np.ndarray, shacl_schema_validation_results, problem_instances, pre_evaluated_expr: np.ndarray = None) -> pd.DataFrame:
+        val_results = self.check_shacl_condition(shacl_schema_validation_results, len(predictions))
         val_results = val_results.map({False: 0, True: 1, np.nan: -1})
         return val_results
 
@@ -182,8 +185,8 @@ class InvertedShaclSchemaConstraint(ShaclSchemaConstraint):
     def __init__(self, name: str, shape_schema_dir: str = None, target_shape: str = None) -> None:
         super().__init__(name, shape_schema_dir, target_shape)
     
-    def eval(self, predictions: np.ndarray, dataset, pre_evaluated_expr: np.ndarray = None) -> pd.DataFrame:
-        not_inverted_result = super().eval(predictions, dataset, pre_evaluated_expr)
+    def eval(self, predictions: np.ndarray, shacl_schema_validation_results, problem_instances, pre_evaluated_expr: np.ndarray = None) -> pd.DataFrame:
+        not_inverted_result = super().eval(predictions, shacl_schema_validation_results, problem_instances, pre_evaluated_expr)
         val_results = not_inverted_result.map({0:1, 1:0, -1:-1})
         return val_results
 
@@ -191,7 +194,7 @@ class InvertedPredictionConstraint(PredictionConstraint):
     def __init__(self, name: str, expr: str, shape_schema_dir: str = None, target_shape: str = None, condition: str = '') -> None:
         super().__init__(name, expr, shape_schema_dir, target_shape, condition)
     
-    def eval(self, predictions: np.ndarray, dataset, pre_evaluated_expr: np.ndarray = None) -> pd.DataFrame:
-        not_inverted_result = super().eval(predictions, dataset, pre_evaluated_expr)
+    def eval(self, predictions: np.ndarray,shacl_schema_validation_results, problem_instances, pre_evaluated_expr: np.ndarray = None) -> pd.DataFrame:
+        not_inverted_result = super().eval(predictions, shacl_schema_validation_results, problem_instances, pre_evaluated_expr)
         val_results = not_inverted_result.map({0:1, 1:0, -1:-1})
         return val_results

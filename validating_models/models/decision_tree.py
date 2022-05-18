@@ -35,15 +35,11 @@ def get_node_samples(tree: ShadowDecTree):
         if get_hyperparameter_value('node_to_samples_non_optimized'):
             print('Using non optimized node_samples on purpose!')
             result = tree.get_node_samples()
-            new_entry('n_dnodes',len(result))
         else:
             try:
-                print('Calculating Node_samples!')
+                print('Calculating node samples!')
                 dec_paths = tree.tree_model.decision_path(tree.x_data)
-                if not get_hyperparameter_value('node_to_samples_dont_convert_to_csc'):
-                    dec_paths = dec_paths.tocsc()
-                else:
-                    print('Not converting to csc on purpose!')
+                dec_paths = dec_paths.tocsc()
 
                 n_nodes = dec_paths.shape[1]
                 node_to_samples = {}
@@ -53,6 +49,8 @@ def get_node_samples(tree: ShadowDecTree):
                 result = tree.node_to_samples
             except:
                 result = tree.get_node_samples()
-            new_entry('n_dnodes',len(result))
+    new_entry('n_dnodes',len(result))
+    new_entry('n_leaves',len(tree.leaves))
+    new_entry('n_splitnodes',len(tree.internal))
     return result
         

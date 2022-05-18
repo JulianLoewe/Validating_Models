@@ -6,13 +6,13 @@ from .dataset import Dataset, BaseDataset, ProcessedDataset
 from .constraint import Constraint, TRUTH_VALUE_TO_STRING, PredictionConstraint
 import numpy as np
 import pandas as pd
-from validating_models.stats import get_decorator
+from validating_models.stats import get_decorator, measure_time
 from functools import cached_property
 import logging
 
 logger = logging.getLogger(__name__)
-time_generate_fdt = get_decorator('fdt')
-time_eval = get_decorator('eval')
+time_generate_fdt = get_decorator('summarization')
+time_overall_constraint_evaluation = get_decorator('overall_constraint_evaluation')
 
 class Checker:
     '''Class used to validate constraints against prediction results given a dataset or against the targets (ground truth) in the dataset given the dataset.
@@ -99,36 +99,33 @@ class Checker:
         
         return explaination
     
-    def pre_evaluate_expression(self, constraint: Constraint) -> np.ndarray:
+    def pre_evaluate_expression(self, constraint: Constraint, target, problem_instances) -> np.ndarray:
         constraint_identifier = constraint.identifier
         if not isinstance(constraint, PredictionConstraint):
             return None
         if constraint_identifier not in self._pre_evaluated_expressions:
-            self._pre_evaluated_expressions.loc[:,constraint_identifier] = constraint.eval_expr(self.get_target(), self.dataset)
+            self._pre_evaluated_expressions.loc[:,constraint_identifier] = constraint.eval_expr(target, problem_instances)
         return self._pre_evaluated_expressions[constraint_identifier].values
 
 
+    @time_overall_constraint_evaluation
     def validate(self, constraints: List[Constraint]):
-        if isinstance(self.dataset, (BaseDataset, ProcessedDataset)):
-            self.dataset.calculate_shacl_schema_valiation_results(constraints, self)
+        # Perform the necessary SHACL Shape Schema Validation + Join to get the shacl validation results per sample in the dataset
+        constraint_need_shacl_results = [constraint for constraint in constraints if constraint.uses_shacl_constraint]
+
+        shacl_schema_validation_results = self.dataset.get_shacl_schema_validation_results(constraint_need_shacl_results, checker = self)
+
+        # Model Inference or getting the ground truth values
+        with measure_time('model_inference'):
+            target = self.get_target()
+
+        # Get the problem instances to evaluate constraint expression making use of feature values
+        problem_instances = self.dataset.x_data(df=True)
 
         for constraint in constraints:
-            self._validate(constraint)
-
-    @time_eval
-    def _validate(self, constraint: Constraint):
-        '''Internally calculates the constraint validation result for a given constraint
-
-        Parameters
-        ----------
-            constraint : validating_models.constraint.Constraint
-                The constraint to be validated.
-        '''
-        target = self.get_target()
-        constraint_identifier = constraint.identifier
-        if constraint_identifier not in self.constraint_validation_results:
-            pre_evaluated_expression = self.pre_evaluate_expression(constraint)
-            self.constraint_validation_results.loc[:, constraint_identifier] = constraint.eval(target, self.dataset, pre_evaluated_expr=pre_evaluated_expression )
+            if constraint.identifier not in self.constraint_validation_results:
+                pre_evaluated_expression = self.pre_evaluate_expression(constraint, target, problem_instances)
+                self.constraint_validation_results.loc[:, constraint.identifier] = constraint.eval(target, shacl_schema_validation_results, problem_instances, pre_evaluated_expr=pre_evaluated_expression )
 
     def get_constraint_validation_result(self, constraints, non_applicable_counts=False, df=False, only_cached_results=False):
         '''Gives the constraint validation results for a given set of constraints
