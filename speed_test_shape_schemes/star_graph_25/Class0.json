@@ -1,0 +1,53 @@
+{
+    "name": "Class0",
+    "targetDef": {
+        "class": "http://example.com/Class0",
+        "query": "SELECT ?x WHERE { ?x a <http://example.com/Class0> }"
+    },
+    "constraintDef": {
+        "conjunctions": [
+            [
+                {
+                    "path": "<http://example.com/literal1>",
+                    "min": 1
+                },
+                {
+                    "path": "<http://example.com/literal2>",
+                    "min": 3
+                },
+                {
+                    "path": "<http://example.com/literal3>",
+                    "min": 4
+                },
+                {
+                    "path": "<http://example.com/literal2>",
+                    "max": 5
+                },
+                {
+                    "path": "<http://example.com/literal4>",
+                    "max": 2
+                },
+                {
+                    "path": "<http://example.com/literal5>",
+                    "min": 1
+                },
+                {
+                    "path": "<http://example.com/literal6>",
+                    "min": 2
+                },
+                {
+                    "path": "<http://example.com/literal7>",
+                    "max": 1
+                },
+                {
+                    "path": "<http://example.com/literal8>",
+                    "max": 5
+                },
+                {
+                    "path": "<http://example.com/literal9>",
+                    "max": 10
+                }
+            ]
+        ]
+    }
+}

@@ -1,10 +1,13 @@
 from argparse import ArgumentParser
+from pathlib import Path
+from socket import timeout
 import numpy as np
 import pandas as pd
 from sklearn.datasets import make_classification
 from validating_models.dataset import BaseDataset
 from validating_models.constraint import ShaclSchemaConstraint
 from sklearn.tree import DecisionTreeClassifier
+from validating_models.shacl_validation_engine import ReducedTravshaclCommunicator
 import validating_models.visualizations as viz
 from validating_models.checker import Checker
 import pickle
@@ -62,12 +65,14 @@ def create_data_frame(n_samples, n_classes):
     return df
 
 @file_cache('dataset')
-def create_dataset(n_samples, n_classes, n_nodes):
+def create_dataset(n_samples, n_classes, n_nodes, node_range = None):
     print('Creating Dataset...', end='')
     df = create_data_frame(n_samples, n_classes)
-    nodes = [f'node_{i}' for i in range(n_nodes)]
-    sample_to_node_mapping = pd.DataFrame(data=np.random.choice(nodes, size=(n_samples,1)), columns=['?x'])
-    dataset = BaseDataset(df, target_name = 'TARGET', seed_query = None, seed_var = '?x', sample_to_node_mapping = sample_to_node_mapping, random_schema_validation = True, categorical_mapping={'TARGET': {0:'0', 1: '1'}})
+    if node_range == None:
+        node_range = range(n_nodes)
+    nodes = [f'entity_{int(i):010d}' for i in node_range]
+    sample_to_node_mapping = pd.DataFrame(data=np.random.choice(nodes, size=(n_samples,1)), columns=['x'])
+    dataset = BaseDataset(df, target_name = 'TARGET', seed_query = None, seed_var = 'x', sample_to_node_mapping = sample_to_node_mapping, random_schema_validation = True, categorical_mapping={'TARGET': {0:'0', 1: '1'}})
     print('Done')
     return dataset
 
@@ -153,6 +158,32 @@ def join_strategie_experiment(id, use_outer_join, order_by_cardinality, n_sample
 
     STATS_COLLECTOR.to_file('join_strategie_times.csv')
 
+
+
+def star_schema_experiment_generator(endpoint, api_config, shape_schema_dir, n_nodes=4000, n_constraints=24, n_samples=20000):
+    constraints = [ ShaclSchemaConstraint(name=f'Constraint {i}',shape_schema_dir=shape_schema_dir, target_shape=f'Class{i+1}') for i in range(n_constraints)]
+    dataset = create_dataset(n_samples=n_samples, n_nodes=n_nodes, n_classes=2, node_range=[4000,8000])
+    dataset.communicator = ReducedTravshaclCommunicator("",endpoint, api_config)
+    dataset.seed_query = "SELECT ?x WHERE { ?x a <http://example.com/Qs> }"
+    dataset.random_schema_validation = False
+    return dataset, constraints
+
+
+
+@concurrent.process(timeout=300, daemon=False)
+def validation_engine_experiment(id, experiment_generator, endpoint, api_config, shape_schema_dir, n_nodes, n_constraints, n_samples, constraints_separate):
+    from validating_models.stats import STATS_COLLECTOR
+
+    STATS_COLLECTOR.activate(hyperparameters = ['n_samples','n_nodes','shape_schema_dir','api_config'])
+    STATS_COLLECTOR.new_run(hyperparameters = [n_samples, n_nodes, shape_schema_dir, api_config])
+    dataset, constraints = experiment_generator(endpoint, api_config, shape_schema_dir, n_nodes, n_constraints, n_samples)
+    if constraints_separate:
+        for constraint in constraints:
+            profile(dataset.get_shacl_schema_validation_results, id, [constraint])
+    else:
+        profile(dataset.get_shacl_schema_validation_results, id, constraints)
+    STATS_COLLECTOR.to_file('validation_engine.csv')
+
 #################################################################################################
 # Running the experiments                                                                       #
 #################################################################################################
@@ -179,6 +210,22 @@ def main():
         plt.xlabel('Feature 1')
         plt.legend()
         plt.savefig('artificial_dataset.png')
+
+    elif args.experiment == "validation_engine":
+        experiment_generators = [star_schema_experiment_generator]
+        all_heuristics_config = 'speed_test_shacl_api_configs/all_heuristics_config.json'
+        no_heuristics_config = 'speed_test_shacl_api_configs/no_heuristics.json'
+        endpoint = 'http://localhost:14000/sparql'
+        try:
+            validation_engine_experiment(f"star_graph_25_{no_heuristics_config.replace('/','_')}_False", star_schema_experiment_generator, endpoint, no_heuristics_config, 'speed_test_shape_schemes/star_graph_25', n_nodes=4000, n_constraints=24, n_samples=20000, constraints_separate=False).result()
+        except Exception as e:
+            print(e)
+
+        # for generator in experiment_generators:
+        #     for config in Path('speed_test_shacl_api_configs').glob('*.json'):
+        #         api_config = str(config)
+        #         validation_engine_experiment(f"star_graph_25_{no_heuristics_config.replace('/','_')}_False", generator, endpoint, no_heuristics_config, 'speed_test_shape_schemes/star_graph_25', n_nodes=4000, n_constraints=24, n_samples=20000, constraints_separate=False).result()
+        #     validation_engine_experiment(f"star_graph_25_{all_heuristics_config.replace('/','_')}_True", generator, endpoint, all_heuristics_config, 'speed_test_shape_schemes/star_graph_25', n_nodes=4000, n_constraints=24, n_samples=20000, constraints_separate=False).result()
 
     elif args.experiment == "nodesamples":
         nsamples_list = np.logspace(4,12, base=4, num = 20, dtype=np.int_)
