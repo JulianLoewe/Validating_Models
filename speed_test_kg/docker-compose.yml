@@ -1,0 +1,19 @@
+version: '2'
+
+services:
+  test_data:
+    container_name: validating_models_speed_test_kg
+    image: kemele/virtuoso:7-stable
+    volumes:
+      - ./data:/data/toLoad
+      - ./virtuoso.ini:/data/virtuoso.ini
+    mem_limit: 10g
+    ports:
+      - '14000:8890'
+    networks:
+      - shacl_engine_tests
+
+networks:
+  shacl_engine_tests:
+    driver: bridge
+    external: true

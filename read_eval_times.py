@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from json import load
 from matplotlib.cbook import Stack
 import pandas as pd
@@ -16,16 +17,13 @@ def load_data(input_path, join_is_separate = False, eval_is_separate = False, ra
 
     data = pd.concat((hyperparameters, times), axis = 1)
 
-    overall_categories = ['feature range', 'io', 'fdt', 'viz_hist', 'viz_pie', 'node_samples', 'picture composition']
+    overall_categories = ['io', 'summarization', 'viz_hist', 'viz_pie','viz_grouped_hist', 'overall_constraint_evaluation', 'node_samples', 'picture_composition']
 
     if join_is_separate:
         overall_categories = overall_categories + ['join']
     
     if eval_is_separate:
         overall_categories = overall_categories + ['eval']
-    
-    if random_shacl_results_is_separate:
-        overall_categories = overall_categories + ['random shacl results']
 
     data['other'] = data['overall']
 
@@ -47,120 +45,127 @@ def load_data(input_path, join_is_separate = False, eval_is_separate = False, ra
     data = pd.concat([mean[time_names],std], axis=1)
     return data, time_names, hp_names, overall_categories
 
-# Parallel vs Serial Execution Times
-# data, _, _, categories = load_data('evaluation results/parallel_vs_serial_times_cx31.csv', eval_is_separate=True)
-# defaults = {'max_depth': 5, 'n_samples': 4**10, 'n_nodes':4**10, 'n_constraints': 5}
 
-# for experiment in defaults:
-#     locked_hps = {key: value for key, value in defaults.items() if key != experiment}
-#     filtered_data = data.loc[(data[list(locked_hps)] == pd.Series(locked_hps)).all(axis=1)]
-#     filtered_data = filtered_data.drop(columns = list(locked_hps))
-    
-#     # StackedHistogram for serial execution times
-#     serial_filtered_data = filtered_data.loc[filtered_data['visualize_in_parallel'] == False]
-#     serial_filtered_data = serial_filtered_data.sort_values(by=[experiment])
-#     #print(serial_filtered_data['other'])
-#     data_to_draw = serial_filtered_data[categories].values.T
-#     bar_labels = serial_filtered_data[experiment].values
-#     #print(experiment)
-#     #print(data_to_draw.shape)
-#     from validating_models.drawing_utils import StackedHistogram
-#     plot = StackedHistogram(data_to_draw, figure_size=(6,5))
-#     plot.draw(bar_labels=bar_labels, bar_labels_title=experiment, categorical_labels=categories, categorical_colors=[get_cmap(len(categories) +1,'hsv')(i) for i in range(len(categories)) ])
+def main():
+    parser = ArgumentParser(description='Transforms data collected from speed_test.py into visualizations')
+    parser.add_argument('type', type=str)
+    parser.add_argument('input', type=str)
+    parser.add_argument('output', type=str)
+    args = parser.parse_args()
 
-#     coordinates_range = [-0.5, len(bar_labels) - 1 + 0.5]
-#     plot.ax.set_xlim(coordinates_range)
+    if args.type == 'treevizParallelSerial':
+        data, _, _, categories = load_data('evaluation results/parallel_vs_serial_times_cx31.csv', eval_is_separate=True)
+        defaults = {'max_depth': 5, 'n_samples': 4**10, 'n_nodes':4**10, 'n_constraints': 5}
 
-#     # Line Plot for serial execution time
-#     x_data = bar_labels
-#     x_range = [np.min(x_data), np.max(x_data)]
-#     transform = partial(plot.transform, range=x_range)
-#     new_x_data = np.vectorize(transform)(x_data)
-#     y_data = serial_filtered_data['overall'].values
-#     plot.ax.plot(new_x_data, y_data,'bo' ,label='serial execution time')
+        for experiment in defaults:
+            locked_hps = {key: value for key, value in defaults.items() if key != experiment}
+            filtered_data = data.loc[(data[list(locked_hps)] == pd.Series(locked_hps)).all(axis=1)]
+            filtered_data = filtered_data.drop(columns = list(locked_hps))
+            
+            # StackedHistogram for serial execution times
+            serial_filtered_data = filtered_data.loc[filtered_data['visualize_in_parallel'] == False]
+            serial_filtered_data = serial_filtered_data.sort_values(by=[experiment])
+            #print(serial_filtered_data['other'])
+            data_to_draw = serial_filtered_data[categories].values.T
+            bar_labels = serial_filtered_data[experiment].values
+            #print(experiment)
+            #print(data_to_draw.shape)
+            from validating_models.drawing_utils import StackedHistogram
+            plot = StackedHistogram(data_to_draw, figure_size=(6,5))
+            plot.draw(bar_labels=bar_labels, bar_labels_title=experiment, categorical_labels=categories, categorical_colors=[get_cmap(len(categories) +1,'hsv')(i) for i in range(len(categories)) ])
 
-#     # Line Plot for parallel execution time    
-#     parallel_filtered_data = filtered_data.loc[filtered_data['visualize_in_parallel'] == True]
-#     parallel_filtered_data = parallel_filtered_data.sort_values(by=[experiment])
-#     x_data = parallel_filtered_data[experiment].values# - 1
-#     x_range = [np.min(x_data), np.max(x_data)]
+            coordinates_range = [-0.5, len(bar_labels) - 1 + 0.5]
+            plot.ax.set_xlim(coordinates_range)
 
+            # Line Plot for serial execution time
+            x_data = bar_labels
+            x_range = [np.min(x_data), np.max(x_data)]
+            transform = partial(plot.transform, range=x_range)
+            new_x_data = np.vectorize(transform)(x_data)
+            y_data = serial_filtered_data['overall'].values
+            plot.ax.plot(new_x_data, y_data,'bo' ,label='serial execution time')
 
-
-#     transform = partial(plot.transform, range=x_range)
-#     new_x_data = np.vectorize(transform)(x_data)
-
-#     y_data = parallel_filtered_data['overall'].values
-#     plot.ax.plot(new_x_data, y_data, 'ro', label='parallel execution time')
-    
-#     plot.draw_legend()
-
-#     plot.save(f'experiment_{experiment}.png', transparent=False)  
+            # Line Plot for parallel execution time    
+            parallel_filtered_data = filtered_data.loc[filtered_data['visualize_in_parallel'] == True]
+            parallel_filtered_data = parallel_filtered_data.sort_values(by=[experiment])
+            x_data = parallel_filtered_data[experiment].values# - 1
+            x_range = [np.min(x_data), np.max(x_data)]
 
 
 
+            transform = partial(plot.transform, range=x_range)
+            new_x_data = np.vectorize(transform)(x_data)
 
-# Join Ordered by Cardinality vs Not ordered by Cardinality over n_samples
-data, _,_,_ = load_data('join_strategie_times.csv')
-fig, ax = plt.subplots(figsize=(5,5))
-print(data.columns)
-data_join_sorted = data[data['order_by_cardinality'] == True]
-data_join_unsorted = data[data['order_by_cardinality'] == False]
-for i,data in enumerate([data_join_sorted, data_join_unsorted]):
-    x = data['n_samples']
-    y = data['join']
-    y_err = data['join_std']
-    ax.errorbar(x, y, yerr=y_err, label=f'{i}')
-plt.legend()
-plt.show()
+            y_data = parallel_filtered_data['overall'].values
+            plot.ax.plot(new_x_data, y_data, 'ro', label='parallel execution time')
+            
+            plot.draw_legend()
+
+            plot.save(f'experiment_{experiment}.png', transparent=False)  
+
+    elif args.type == 'join':
+        # Join Ordered by Cardinality vs Not ordered by Cardinality over n_samples
+        # data, _,_,_ = load_data(args.input)
+        # fig, ax = plt.subplots(figsize=(5,5))
+        # print(data.columns)
+        # data_join_sorted = data[data['order_by_cardinality'] == True]
+        # data_join_unsorted = data[data['order_by_cardinality'] == False]
+        # for i,data in enumerate([data_join_sorted, data_join_unsorted]):
+        #     x = data['n_samples']
+        #     y = data['join']
+        #     y_err = data['join_std']
+        #     ax.errorbar(x, y, yerr=y_err, label=f'{i}')
+        # plt.legend()
+        # plt.show()
+        data, _, _,_ = load_data(args.input)
+        defaults = {'n_samples': 4**10, 'n_nodes':4**10, 'n_constraints': 5}
+
+        fig, ax = plt.subplots(1,3, sharey='all', figsize=(15,5))
+
+        for i,experiment in enumerate(defaults):
+            #fig, ax = plt.subplots(figsize=(6,5))
+            locked_hps = {key: value for key, value in defaults.items() if key != experiment}
+            filtered_data = data.loc[(data[list(locked_hps)] == pd.Series(locked_hps)).all(axis=1)]
+            filtered_data = filtered_data.drop(columns = list(locked_hps))
+
+            # Exclude the default value as this is the mean taken over n_constraints
+            if experiment != 'n_constraints':
+                filtered_data = filtered_data.loc[filtered_data[experiment] != defaults[experiment]]
+
+            for use_outer_join, order_by_cardinality,not_pandas_optimized, label in [(False, False,True, 'Join T at the beginning'), (True, True, True, 'Join T at the end + Sort by Cardinality'), (True, False, True, 'Join T at the end')]:
+                data_use_outer_join = filtered_data.loc[(filtered_data['use_outer_join'] == use_outer_join) & (filtered_data['order_by_cardinality'] == order_by_cardinality) & (filtered_data['not_pandas_optimized'] == not_pandas_optimized)]  # use_outer_join,order_by_cardinality --> FF, TT, TF
+                data_use_outer_join = data_use_outer_join.sort_values(by=[experiment])
+                x_data = data_use_outer_join[experiment]
+                y_data = data_use_outer_join['join']
+                y_err = data_use_outer_join['join_std']
+                ax[i].errorbar(x_data, y_data, yerr=y_err, label=label)
+
+
+            ax[i].set_ylabel('time [s]')
+            ax[i].set_xlabel(experiment.replace('n_','#'))
+
+        min_y, max_y = plt.ylim()
+
+        for i,experiment in enumerate(defaults):
+            ax[i].vlines(defaults[experiment],min_y,max_y,'r', alpha=0.3)
+
+        plt.title(f'')
+        plt.legend()
+        plt.savefig(f'join_exp')
+        plt.close()
+
+
+
+    else:
+        pass
+
+main()
 
 
 
 
 # Join Results first vs. direct join with mapping
-# data, _, _,_ = load_data('evaluation results/join_strategie_times.csv')
-# defaults = {'n_samples': 4**10, 'n_nodes':4**10, 'n_constraints': 5}
 
-# fig, ax = plt.subplots(1,3, sharey='all', figsize=(15,5))
-
-# y_max = 0
-
-# for i,experiment in enumerate(defaults):
-#     #fig, ax = plt.subplots(figsize=(6,5))
-#     locked_hps = {key: value for key, value in defaults.items() if key != experiment}
-#     filtered_data = data.loc[(data[list(locked_hps)] == pd.Series(locked_hps)).all(axis=1)]
-#     filtered_data = filtered_data.drop(columns = list(locked_hps))
-
-#     # Exclude the default value as this is the mean taken over n_constraints
-#     if experiment != 'n_constraints':
-#         filtered_data = filtered_data.loc[filtered_data[experiment] != defaults[experiment]]
-
-#     data_use_outer_join = filtered_data.loc[filtered_data['use_outer_join'] == True]
-#     data_use_outer_join = data_use_outer_join.sort_values(by=[experiment])
-#     x_data = data_use_outer_join[experiment]
-#     y_data = data_use_outer_join['join']
-#     y_err = data_use_outer_join['join_std']
-#     ax[i].errorbar(x_data, y_data, yerr=y_err, label='join shacl results first')
-
-#     data_no_outer_join = filtered_data.loc[filtered_data['use_outer_join'] == False]
-#     data_no_outer_join = data_no_outer_join.sort_values(by=[experiment])
-
-#     x_data = data_no_outer_join[experiment]
-#     y_data = data_no_outer_join['join']
-#     y_err = data_no_outer_join['join_std']
-#     ax[i].errorbar(x_data, y_data, yerr=y_err, label='directly join with samples-to-node-mapping')
-#     ax[i].set_ylabel('time [s]')
-#     ax[i].set_xlabel(experiment.replace('n_','#'))
-
-# min_y, max_y = plt.ylim()
-
-# for i,experiment in enumerate(defaults):
-#     ax[i].vlines(defaults[experiment],min_y,max_y,'r', alpha=0.3)
-
-# plt.title(f'')
-# plt.legend()
-# plt.savefig(f'join_exp')
-# plt.close()
 
 # NODE Samples over n_samples
 # data, _, _,_ = load_data('evaluation results/samples_to_node_times.csv')

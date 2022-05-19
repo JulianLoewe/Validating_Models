@@ -4,7 +4,7 @@ import tempfile
 import os
 from validating_models.stats import get_decorator
 
-time_picture_coposition = get_decorator('picture composition')
+time_picture_coposition = get_decorator('picture_composition')
 
 tmp = tempfile.gettempdir()
 

@@ -584,13 +584,18 @@ class BaseDataset(Dataset):
             if get_hyperparameter_value('order_by_cardinality'):
                 print('Ordering by cardinality')
                 what = sorted(what, key=lambda x: len(self.shacl_validation_results[x]), reverse=False)
-            print([(x, len(self.shacl_validation_results[x])) for x in what])
+            
             first_key = what.pop() # shacl results are joined first with full outer join and afterwards joined with the mapping with a left outer join
-            result = self.shacl_validation_results[first_key]
-            for key in what:
-                result = result.join(self.shacl_validation_results[key], how='outer')
-            return self.sample_to_node_mapping.join(result, on=self.seed_var)
-            #return self.sample_to_node_mapping.join(self.shacl_validation_results[first_key].join([self.shacl_validation_results[key] for key in what], how='outer'), on=self.seed_var)
+            
+            if get_hyperparameter_value('not_pandas_optimized'):
+                print('Using not pandas optimized join')
+                result = self.shacl_validation_results[first_key]
+                for key in what:
+                    result = result.join(self.shacl_validation_results[key], how='outer')
+                    
+                return self.sample_to_node_mapping.join(result, on=self.seed_var)
+            
+            return self.sample_to_node_mapping.join(self.shacl_validation_results[first_key].join([self.shacl_validation_results[key] for key in what], how='outer'), on=self.seed_var)
 
     def get_sample_to_node_mapping(self, indices=None):
         """Returns the sample-to-node mapping.
