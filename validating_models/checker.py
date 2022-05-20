@@ -2,15 +2,13 @@ from types import FunctionType
 from typing import List
 import itertools
 
-from .dataset import Dataset, BaseDataset, ProcessedDataset
+from .dataset import Dataset
 from .constraint import Constraint, TRUTH_VALUE_TO_STRING, PredictionConstraint
 import numpy as np
 import pandas as pd
 from validating_models.stats import get_decorator, measure_time
 from functools import cached_property
-import logging
 
-logger = logging.getLogger(__name__)
 time_generate_fdt = get_decorator('summarization')
 time_overall_constraint_evaluation = get_decorator('overall_constraint_evaluation')
 
@@ -231,13 +229,10 @@ class Checker:
         cache_key = str([constraint.identifier for constraint in constraints]) + str(not_covered)
         
         if cache_key in self._coverage_results_cache:
-            logger.debug('Using Cached Coverage!')
             return self._coverage_results_cache[cache_key]
 
-        logger.debug('Calculating Coverage')
         if not only_cached_results:
             self.validate(constraints)
-        n_constraints = len(constraints)
         validation_results = self.get_constraint_validation_result(list(reversed(constraints)), non_applicable_counts=not_covered, only_cached_results=only_cached_results)
         valid_mask = (validation_results == 1)
         invalid_mask = (validation_results == 0)

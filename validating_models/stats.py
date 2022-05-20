@@ -92,16 +92,8 @@ def get_process_stats_initalizer_args():
 def timeit(category,func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        start = time.time()
-        res = func(*args, **kwargs)
-        end = time.time()
-        global STATS_COLLECTOR
-        q = STATS_COLLECTOR.get_stats_queue()
-        if q:
-            q.put((category,end-start))
-        else:
-            pass
-            #print("Queue not set!")
+        with measure_time(category):
+            res = func(*args, **kwargs)
         return res
     return wrapper
 
@@ -112,6 +104,7 @@ def measure_time(category):
         yield None
     finally:
         end = time.time()
+        global STATS_COLLECTOR
         q = STATS_COLLECTOR.get_stats_queue()
         if q:
             q.put((category,end-start))

@@ -132,7 +132,7 @@ def main():
             if experiment != 'n_constraints':
                 filtered_data = filtered_data.loc[filtered_data[experiment] != defaults[experiment]]
 
-            for use_outer_join, order_by_cardinality,not_pandas_optimized, label in [(False, False,True, 'Join T at the beginning'), (True, True, True, 'Join T at the end + Sort by Cardinality'), (True, False, True, 'Join T at the end')]:
+            for use_outer_join, order_by_cardinality,not_pandas_optimized, label in [(False, False,True, 'Join T at the beginning'), (True, True, False, 'Join T at the end + Sort by Cardinality'), (True, False, False, 'Join T at the end')]: # (True, True, True, 'Join T at the end + Sort by Cardinality'), (True, False, True, 'Join T at the end')
                 data_use_outer_join = filtered_data.loc[(filtered_data['use_outer_join'] == use_outer_join) & (filtered_data['order_by_cardinality'] == order_by_cardinality) & (filtered_data['not_pandas_optimized'] == not_pandas_optimized)]  # use_outer_join,order_by_cardinality --> FF, TT, TF
                 data_use_outer_join = data_use_outer_join.sort_values(by=[experiment])
                 x_data = data_use_outer_join[experiment]
@@ -159,7 +159,8 @@ def main():
     else:
         pass
 
-main()
+if __name__ == '__main__':
+    main()
 
 
 

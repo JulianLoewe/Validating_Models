@@ -1,22 +1,20 @@
 from abc import ABC
-from logging import warning
-from typing import Dict, List
 import requests
-from functools import reduce
 import pathlib
 import sys
 from multiprocessing import Queue
 import logging
+from validating_models.stats import new_entry
 
 PACKAGE_SHACL_API = str(pathlib.Path(__file__).parent.parent.joinpath('shaclAPI').resolve())
 
 sys.path.append(PACKAGE_SHACL_API)
+from shaclapi import logger as shaclapi_logger
+shaclapi_logger.setup(level=logging.DEBUG, handler=logging.FileHandler('api.log'))
 from shaclapi.reduction import prepare_validation
 from shaclapi.config import Config
 from shaclapi.reduction.ValidationResultTransmitter import ValidationResultTransmitter
-from shaclapi import logger as shaclapi_logger
 from shaclapi.query import Query
-shaclapi_logger.setup(level=logging.DEBUG, handler=logging.FileHandler('api.log'),format='%(msg)s')
 sys.path.remove(PACKAGE_SHACL_API)
 
 class Communicator(ABC):
@@ -69,14 +67,19 @@ class ReducedTravshaclCommunicator(Communicator):
 
         val_results = {shape: {} for shape in target_shapes}
 
+        number_of_targets = 0
         item = queue.get()
         while item != 'EOF':
+            number_of_targets += 1
             instance = item['instance']
             val_shape = item['validation'][0]
             val_res = item['validation'][1]
             if val_shape in target_shapes:
                 val_results[val_shape][instance] = val_res
             item = queue.get()
+        new_entry('number_of_targets', number_of_targets)
+        queue.close()
+        queue.cancel_join_thread()
         return val_results
 
 

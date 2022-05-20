@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from functools import lru_cache
-import random
 
 from .constraint import Constraint, InvertedPredictionConstraint, InvertedShaclSchemaConstraint, PredictionConstraint, ShaclSchemaConstraint
 from .shacl_validation_engine import Communicator,ReducedTravshaclCommunicator
