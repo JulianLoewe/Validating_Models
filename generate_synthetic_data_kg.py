@@ -257,7 +257,6 @@ def write_entities_for_class_combi(i, class_combi, id_to_class, entity_borders, 
 # Main                                  #
 #########################################
 
-
 def generate_kg(shape_schema_dir, config, output_dir):
     # Parse Input and Output Directories
     input_shape_schema_dir = Path(shape_schema_dir)
@@ -280,7 +279,7 @@ def generate_kg(shape_schema_dir, config, output_dir):
     namespaces = config["namespaces"]
     namespace = config["graph_namespace"]
 
-    # Read and Setup Classes
+    # Read and Setup Classes given by the Shape Schema
     class_to_id = {class_name: re.findall(r'()(?<=[/,#])(\w+)(?=[>])', '<' + class_name + '>')[-1][1] for i, class_name in enumerate(set([shape['targetDef']['class'] for shape in shapes.values()]))}
     id_to_class = {str(i): class_name for class_name, i in class_to_id.items()}
     class_id_to_shapes = {str(i):[shape_inner for shape_inner in shapes.values() if shape_inner['targetDef']['class'] == class_name] for i,class_name in id_to_class.items()}
@@ -313,7 +312,7 @@ def generate_kg(shape_schema_dir, config, output_dir):
         entity_borders.append(entity_borders[-1] + targets_per_class_combi[combi][1])
 
     # Write Namespace
-    path = Path(output_dir, 'data_.ttl').resolve()
+    path = Path(output_dir, 'data.ttl').resolve()
     with open(path, 'w') as f:
         write_namespaces(f, namespaces)
 
@@ -324,7 +323,15 @@ def generate_kg(shape_schema_dir, config, output_dir):
         # merge overlapping shape constraints
         for i, class_combi in enumerate(class_combinations):
             results.append(pool.schedule(write_entities_for_class_combi, (i, class_combi, id_to_class, entity_borders, namespace, output_dir)))
-            # Lower Bound collection phase
+                    
+        for result in results:
+            print(result.result())
+    
+    with ProcessPool(max_workers=mp.cpu_count(),context=mp.get_context('spawn')) as pool:
+        results = []
+
+        # merge overlapping shape constraints
+        for i, class_combi in enumerate(class_combinations):
             constraints = {} # constraint --> intershape partner --> path --> range
             relevant_shapes = [shape for shapes in class_combi_to_shapes[class_combi] for shape in shapes]
             for shape in relevant_shapes:
@@ -349,13 +356,19 @@ def generate_kg(shape_schema_dir, config, output_dir):
                             constraints[constraint['shape']][constraint['path']][2].add(shape['name'])
             relevant_shape_names = set([shape['name'] for shape in relevant_shapes])
             results.append(pool.schedule(add_entity_properties, (constraints, shapes, relevant_shape_names, class_to_id, class_combi_to_class_combi_id, i, class_combi, entity_borders, namespace, output_dir)))
-            print(class_combi, constraints)
+                    
         for result in results:
             print(result.result())
 
-    os.system(f'cd {output_dir}; rm data.ttl; cat data_*.ttl > data.ttl; rm data_*.ttl')
 
-    with open('generation_log.txt', 'w') as f:
+
+
+    with open(Path(output_dir, 'data.ttl'),'a') as f1:
+        for file in Path(output_dir).glob('data_*.ttl'):
+            with open(file, 'r') as f2:
+                f1.write(f2.read())
+
+    with open(Path(output_dir, 'generation_log.txt'), 'w') as f:
         for i,class_combi in enumerate(class_combinations):
             for valid in [True, False]:
                 f.write(f"{get_entity_id_range_for_class_combi(i, entity_borders,valid)} - {str(valid)} - {[(get_class_uri_from_class_id(class_id, id_to_class, namespace), set([shape['name'] for shapes in class_combi_to_shapes[class_id] for shape in shapes])) for class_id in class_combi.split('$') if class_id in class_combi_to_shapes]} \n")        

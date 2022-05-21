@@ -25,7 +25,7 @@
                 },
                 {
                     "path": "<http://example.com/literal3>",
-                    "min": 4
+                    "min": 1
                 },
                 {
                     "path": "<http://example.com/literal3>",
@@ -33,7 +33,7 @@
                 },
                 {
                     "path": "<http://example.com/literal4>",
-                    "min": 8
+                    "min": 2
                 },
                 {
                     "path": "<http://example.com/literal4>",

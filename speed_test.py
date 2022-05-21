@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import json
 from pathlib import Path
 from socket import timeout
 import numpy as np
@@ -20,6 +21,7 @@ from concurrent.futures import TimeoutError
 from validating_models.models.decision_tree import get_shadow_tree_from_checker
 from validating_models.stats import new_entry
 import time
+import traceback
 
 random.seed(42)
 np.random.seed(42)
@@ -85,6 +87,7 @@ def train_decision_tree(max_depth, n_samples, n_classes, dataset):
     return tree_classifier
 
 def profile(func, id, *args, pass_id=False, **kwargs):
+    print(f"Running Experiment: {id}")
     profiler = Profiler()
     profiler.start()
     start = time.time()
@@ -160,29 +163,51 @@ def join_strategie_experiment(id, use_outer_join, order_by_cardinality, not_pand
 
 
 
-def star_schema_experiment_generator(endpoint, api_config, shape_schema_dir, n_nodes=4000, n_constraints=24, n_samples=20000):
-    constraints = [ ShaclSchemaConstraint(name=f'Constraint {i}',shape_schema_dir=shape_schema_dir, target_shape=f'Class{i+1}') for i in range(n_constraints)]
-    dataset = create_dataset(n_samples=n_samples, n_nodes=n_nodes, n_classes=2, node_range=[4000,8000])
-    dataset.communicator = ReducedTravshaclCommunicator("",endpoint, api_config)
-    dataset.seed_query = "SELECT ?x WHERE { ?x a <http://example.com/Qs> }"
-    dataset.random_schema_validation = False
+def validation_engine_experiment_generator(endpoint, api_config, shape_schema_dir, n_constraints):
+    constraints = [ ShaclSchemaConstraint(name=f'Constraint {i}',shape_schema_dir=shape_schema_dir, target_shape=f'Class{i}') for i in range(*n_constraints)]
+    print([c.name for c in constraints])
+    communicator = ReducedTravshaclCommunicator("",endpoint, api_config)
+    def hook(result, **args):
+        bindings = result['results']['bindings']
+        n_samples = len(bindings)
+        df = create_data_frame(n_samples,2)
+        return df
+
+    dataset = BaseDataset.from_knowledge_graph(endpoint,communicator, f"SELECT ?x WHERE {{ ?x a <http://example.com/{shape_schema_dir.name}/Qs> }}", "TARGET", seed_var='x',raw_data_query_results_to_df_hook=hook)
+    
     return dataset, constraints
 
 
 
-@concurrent.process(timeout=300, daemon=False)
-def validation_engine_experiment(id, experiment_generator, endpoint, api_config, shape_schema_dir, n_nodes, n_constraints, n_samples, constraints_separate):
+@concurrent.process(timeout=600, daemon=False)
+def validation_engine_experiment(id, endpoint, api_config, shape_schema_dir, n_constraints, constraints_separate, use_outer_join = False, order_by_cardinality = False):
     from validating_models.stats import STATS_COLLECTOR
 
-    STATS_COLLECTOR.activate(hyperparameters = ['n_samples','n_nodes','shape_schema_dir','api_config'])
-    STATS_COLLECTOR.new_run(hyperparameters = [n_samples, n_nodes, shape_schema_dir, api_config])
-    dataset, constraints = experiment_generator(endpoint, api_config, shape_schema_dir, n_nodes, n_constraints, n_samples)
+    dataset, constraints = validation_engine_experiment_generator(endpoint, api_config, shape_schema_dir, n_constraints)
     if constraints_separate:
         for constraint in constraints:
+            STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'order_by_cardinality'])
+            STATS_COLLECTOR.new_run(hyperparameters = [1, shape_schema_dir, api_config, constraints_separate, use_outer_join, order_by_cardinality ])
             profile(dataset.get_shacl_schema_validation_results, id, [constraint])
+            STATS_COLLECTOR.to_file('validation_engine.csv')
     else:
+        STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'order_by_cardinality'])
+        STATS_COLLECTOR.new_run(hyperparameters = [n_constraints[1] - n_constraints[0], shape_schema_dir, api_config, constraints_separate, use_outer_join, order_by_cardinality ])
         profile(dataset.get_shacl_schema_validation_results, id, constraints)
-    STATS_COLLECTOR.to_file('validation_engine.csv')
+        STATS_COLLECTOR.to_file('validation_engine.csv')
+
+
+# @concurrent.process(timeout=600, daemon=False)
+# def test_experiment(id):
+#     from validating_models.stats import STATS_COLLECTOR
+#     from validating_models.shacl_validation_engine import ReducedTravshaclCommunicator
+#     communicator = ReducedTravshaclCommunicator('', 'http://localhost:14000/sparql','speed_test_shacl_api_configs/all_heuristics.json')
+#     STATS_COLLECTOR.activate(hyperparameters = ['id'])
+#     STATS_COLLECTOR.new_run(hyperparameters = [id])
+#     dataset, constraints = star_schema_experiment_generator('http://localhost:14000/sparql', 'speed_test_shacl_api_configs/all_heuristics.json', 'speed_test_shape_schemes/star_graph_25')
+#     profile(dataset.calculate_shacl_schema_valiation_results, id, constraints)
+#     #profile(communicator.request, id, 'SELECT ?x WHERE { ?x a <http://example.com/Qs> }','speed_test_shape_schemes/star_graph_25',['Class13', 'Class10', 'Class24'], 'x')
+#     STATS_COLLECTOR.to_file('test.csv')
 
 #################################################################################################
 # Running the experiments                                                                       #
@@ -212,20 +237,25 @@ def main():
         plt.savefig('artificial_dataset.png')
 
     elif args.experiment == "validation_engine":
-        experiment_generators = [star_schema_experiment_generator]
-        all_heuristics_config = 'speed_test_shacl_api_configs/all_heuristics_config.json'
-        no_heuristics_config = 'speed_test_shacl_api_configs/no_heuristics.json'
+        all_configs = Path('speed_test_shacl_api_configs/').glob('*.json')
+        nconstraints = Path('speed_test_shape_schemes_new','nconstraints.json')
+        with open(nconstraints, 'r') as f:
+            nconstraints_dict = json.load(f)
         endpoint = 'http://localhost:14000/sparql'
-        try:
-            validation_engine_experiment(f"star_graph_25_{no_heuristics_config.replace('/','_')}_False", star_schema_experiment_generator, endpoint, no_heuristics_config, 'speed_test_shape_schemes/star_graph_25', n_nodes=4000, n_constraints=24, n_samples=20000, constraints_separate=False).result()
-        except Exception as e:
-            print(e)
-
-        # for generator in experiment_generators:
-        #     for config in Path('speed_test_shacl_api_configs').glob('*.json'):
-        #         api_config = str(config)
-        #         validation_engine_experiment(f"star_graph_25_{no_heuristics_config.replace('/','_')}_False", generator, endpoint, no_heuristics_config, 'speed_test_shape_schemes/star_graph_25', n_nodes=4000, n_constraints=24, n_samples=20000, constraints_separate=False).result()
-        #     validation_engine_experiment(f"star_graph_25_{all_heuristics_config.replace('/','_')}_True", generator, endpoint, all_heuristics_config, 'speed_test_shape_schemes/star_graph_25', n_nodes=4000, n_constraints=24, n_samples=20000, constraints_separate=False).result()
+        for shape_schema in Path('speed_test_shape_schemes_new').glob('*/**'):
+            for api_config in all_configs:
+                api_config = str(api_config)
+                for constraints_separate in [False, True]:
+                    for k in range(NUM_REPS):
+                        try:
+                            result = validation_engine_experiment(f"{shape_schema.name}_{api_config.replace('/','_')}_{constraints_separate}_{k}", endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate)
+                            result.result()
+                        except Exception as e:
+                            print(e)
+                            result.cancel()
+                        except KeyboardInterrupt:
+                            result.cancel()
+                            exit()
 
     elif args.experiment == "nodesamples":
         nsamples_list = np.logspace(4,12, base=4, num = 20, dtype=np.int_)
@@ -236,11 +266,25 @@ def main():
                         for k in range(NUM_REPS):
                             samples_to_node_experiment(f'node_samples_{non_optimized}_{n_samples}_{max_depth}_{k}', n_samples=n_samples, max_depth=max_depth, node_to_samples_non_optimized=non_optimized).result()
     
-    # elif args.experiment == "custom":
-    #     join_outer = False
-    #     order_by_cardinality = False
-    #     n_samples = 2649128
-    #     join_strategie_experiment(f'{join_outer}-pandas-optimized-{order_by_cardinality}-nsamples{n_samples}',join_outer, order_by_cardinality, n_samples=n_samples).result()
+    elif args.experiment == "custom":
+        all_configs = Path('speed_test_shacl_api_configs/').glob('*.json')
+        nconstraints = Path('speed_test_shape_schemes_new','nconstraints.json')
+        with open(nconstraints, 'r') as f:
+            nconstraints_dict = json.load(f)
+        api_config = 'speed_test_shacl_api_configs/all_heuristics.json'
+        endpoint = 'http://localhost:14000/sparql'
+        shape_schema = Path('speed_test_shape_schemes_new','full_binary_tree_15_nested')
+        constraints_separate = False
+        join_optimized = True
+        k = 0
+        try:
+            result = validation_engine_experiment(f"{shape_schema.name}_{api_config.replace('/','_')}_{constraints_separate}_{k}", endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate,use_outer_join=join_optimized, order_by_cardinality=join_optimized )
+            result.result()
+        except Exception as e:
+            result.cancel()
+            print(e)
+            traceback.print_stack()
+            exit()
 
     elif args.experiment == "join":    
         nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)
@@ -253,7 +297,7 @@ def main():
                     not_pandas_optimized_set = [False, True]
                 else:
                     order_by_cardinality_set = [False]
-                    not_pandas_optimized_set = [False]
+                    not_pandas_optimized_set = [True]
 
                 for not_pandas_optimized in not_pandas_optimized_set:
                     for order_by_cardinality in order_by_cardinality_set:
@@ -267,7 +311,7 @@ def main():
                     not_pandas_optimized_set = [False, True]
                 else:
                     order_by_cardinality_set = [False]
-                    not_pandas_optimized_set = [False]
+                    not_pandas_optimized_set = [True]
 
                 for not_pandas_optimized in not_pandas_optimized_set:
                     for order_by_cardinality in order_by_cardinality_set:
@@ -281,7 +325,7 @@ def main():
                     not_pandas_optimized_set = [False, True]
                 else:
                     order_by_cardinality_set = [False]
-                    not_pandas_optimized_set = [False]
+                    not_pandas_optimized_set = [True]
 
                 for not_pandas_optimized in not_pandas_optimized_set:
                     for order_by_cardinality in order_by_cardinality_set:
@@ -295,12 +339,14 @@ def main():
         max_depths = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13])
 
         for n_samples in nsamples_list:
-            for visualize_in_parallel in [False, True]:
+            for visualize_in_parallel in [True]:
                 for k in range(NUM_REPS):
                     try:
                         dtreeviz_experiment(f'{visualize_in_parallel}-nsamples{n_samples}-{k}',visualize_in_parallel, n_samples=n_samples).result()
                     except Exception as e:
                         print(e)
+                        traceback.print_exc()
+                        return
         
         for n_nodes in n_nodes_list:
             for visualize_in_parallel in [False, True]:

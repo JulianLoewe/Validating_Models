@@ -452,9 +452,11 @@ class BaseDataset(Dataset):
             target_shapes_per_shape_network = {shape_schema: list(set([constraint.target_shape for constraint in constraints])) for shape_schema, constraints in constraints_per_shape_network.items()}
             for shape_schema_dir, target_shapes in target_shapes_per_shape_network.items():
                 constraints_validated_here = constraints_per_shape_network[shape_schema_dir]
-                filter_clause_per_target_shape = {target_shape: '' for target_shape in target_shapes}
+                filter_clause_per_target_shape = None
 
                 if isinstance(checker, Checker): # and np.array([isinstance(constraint, PredictionConstraint) for constraint in constraints]).all():
+                    filter_clause_per_target_shape = {target_shape: '' for target_shape in target_shapes}
+
                     #  Only perform the shacl validation for the instances needed (restricted in the case of PredictionConstraints)
                     indices_to_exclude_per_target_shape = {target_shape: [] for target_shape in target_shapes}
                     for constraint in constraints_validated_here:
@@ -493,10 +495,13 @@ class BaseDataset(Dataset):
                     print('Skip adding filter clause because no checker instance is provided.')
 
                 print(f"Validating {shape_schema_dir} for targets {target_shapes}")
-                try:
-                    val_results = self.communicator.request(self.seed_query, shape_schema_dir, target_shapes, self.seed_var, filter_clause_per_target_shape)
-                except:
-                    print('Falling back to not use additional FILTER clauses.')
+                if filter_clause_per_target_shape:
+                    try:
+                        val_results = self.communicator.request(self.seed_query, shape_schema_dir, target_shapes, self.seed_var, filter_clause_per_target_shape)
+                    except:
+                        print('Falling back to not use additional FILTER clauses.')
+                        
+                else:
                     val_results = self.communicator.request(self.seed_query, shape_schema_dir, target_shapes, self.seed_var)
 
                 for target_shape in target_shapes:
