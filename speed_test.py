@@ -180,16 +180,22 @@ def validation_engine_experiment_generator(endpoint, api_config, shape_schema_di
 
 
 @concurrent.process(timeout=600, daemon=False)
-def validation_engine_experiment(id, endpoint, api_config, shape_schema_dir, n_constraints, constraints_separate, use_outer_join = False, optimize_intermediate_results = False):
+def validation_engine_experiment(id, endpoint, api_config, shape_schema_dir, n_constraints, constraints_separate = None, use_outer_join = False, optimize_intermediate_results = False):
     from validating_models.stats import STATS_COLLECTOR
 
     dataset, constraints = validation_engine_experiment_generator(endpoint, api_config, shape_schema_dir, n_constraints)
-    if constraints_separate:
-        for constraint in constraints:
+    if isinstance(constraints_separate, int):
+        for constraint in constraints[:constraints_separate]:
             STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'optimize_intermediate_results'])
             STATS_COLLECTOR.new_run(hyperparameters = [1, shape_schema_dir, api_config, constraints_separate, use_outer_join, optimize_intermediate_results ])
             profile(dataset.get_shacl_schema_validation_results, id, [constraint])
             STATS_COLLECTOR.to_file('validation_engine.csv')
+    elif isinstance(constraints_separate, str):
+        STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'optimize_intermediate_results'])
+        STATS_COLLECTOR.new_run(hyperparameters = [1, shape_schema_dir, api_config, constraints_separate, use_outer_join, optimize_intermediate_results ])
+        for constraint in constraints[:constraints_separate]:
+            profile(dataset.get_shacl_schema_validation_results, id, [constraint])
+        STATS_COLLECTOR.to_file('validation_engine.csv')
     else:
         STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'optimize_intermediate_results'])
         STATS_COLLECTOR.new_run(hyperparameters = [n_constraints[1] - n_constraints[0], shape_schema_dir, api_config, constraints_separate, use_outer_join, optimize_intermediate_results ])
@@ -241,7 +247,7 @@ def main():
         with open(nconstraints, 'r') as f:
             nconstraints_dict = json.load(f)
         endpoint = 'http://localhost:14000/sparql'
-        for constraints_separate in [False, True]:
+        for constraints_separate in [False, 1, "all"]:
             print('Constraints_separate')
             for shape_schema in Path('speed_test_shape_schemes_new').glob('*/**'):
                 print(shape_schema)
