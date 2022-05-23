@@ -237,7 +237,6 @@ def main():
         plt.savefig('artificial_dataset.png')
 
     elif args.experiment == "validation_engine":
-        all_configs = Path('speed_test_shacl_api_configs/').glob('*.json')
         nconstraints = Path('speed_test_shape_schemes_new','nconstraints.json')
         with open(nconstraints, 'r') as f:
             nconstraints_dict = json.load(f)
@@ -246,7 +245,7 @@ def main():
             print('Constraints_separate')
             for shape_schema in Path('speed_test_shape_schemes_new').glob('*/**'):
                 print(shape_schema)
-                for api_config in all_configs:
+                for api_config in Path('speed_test_shacl_api_configs/').glob('*.json'):
                     api_config = str(api_config)
                     print(api_config)
                     for use_outer_join in [True]:
