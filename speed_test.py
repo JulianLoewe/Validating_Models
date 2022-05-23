@@ -180,19 +180,19 @@ def validation_engine_experiment_generator(endpoint, api_config, shape_schema_di
 
 
 @concurrent.process(timeout=600, daemon=False)
-def validation_engine_experiment(id, endpoint, api_config, shape_schema_dir, n_constraints, constraints_separate, use_outer_join = False, order_by_cardinality = False):
+def validation_engine_experiment(id, endpoint, api_config, shape_schema_dir, n_constraints, constraints_separate, use_outer_join = False, optimize_intermediate_results = False):
     from validating_models.stats import STATS_COLLECTOR
 
     dataset, constraints = validation_engine_experiment_generator(endpoint, api_config, shape_schema_dir, n_constraints)
     if constraints_separate:
         for constraint in constraints:
-            STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'order_by_cardinality'])
-            STATS_COLLECTOR.new_run(hyperparameters = [1, shape_schema_dir, api_config, constraints_separate, use_outer_join, order_by_cardinality ])
+            STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'optimize_intermediate_results'])
+            STATS_COLLECTOR.new_run(hyperparameters = [1, shape_schema_dir, api_config, constraints_separate, use_outer_join, optimize_intermediate_results ])
             profile(dataset.get_shacl_schema_validation_results, id, [constraint])
             STATS_COLLECTOR.to_file('validation_engine.csv')
     else:
-        STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'order_by_cardinality'])
-        STATS_COLLECTOR.new_run(hyperparameters = [n_constraints[1] - n_constraints[0], shape_schema_dir, api_config, constraints_separate, use_outer_join, order_by_cardinality ])
+        STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'optimize_intermediate_results'])
+        STATS_COLLECTOR.new_run(hyperparameters = [n_constraints[1] - n_constraints[0], shape_schema_dir, api_config, constraints_separate, use_outer_join, optimize_intermediate_results ])
         profile(dataset.get_shacl_schema_validation_results, id, constraints)
         STATS_COLLECTOR.to_file('validation_engine.csv')
 
@@ -245,17 +245,18 @@ def main():
         for shape_schema in Path('speed_test_shape_schemes_new').glob('*/**'):
             for api_config in all_configs:
                 api_config = str(api_config)
-                for constraints_separate in [False, True]:
-                    for k in range(NUM_REPS):
-                        try:
-                            result = validation_engine_experiment(f"{shape_schema.name}_{api_config.replace('/','_')}_{constraints_separate}_{k}", endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate)
-                            result.result()
-                        except Exception as e:
-                            print(e)
-                            result.cancel()
-                        except KeyboardInterrupt:
-                            result.cancel()
-                            exit()
+                for constraints_separate in [False]:
+                    for use_outer_join in [True, False]:
+                        for k in range(NUM_REPS):
+                            try:
+                                result = validation_engine_experiment(f"{shape_schema.name}_{api_config.replace('/','_')}_{constraints_separate}_{k}", endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate, use_outer_join=use_outer_join)
+                                result.result()
+                            except Exception as e:
+                                print(e)
+                                result.cancel()
+                            except KeyboardInterrupt:
+                                result.cancel()
+                                exit()
 
     elif args.experiment == "nodesamples":
         nsamples_list = np.logspace(4,12, base=4, num = 20, dtype=np.int_)
@@ -273,12 +274,12 @@ def main():
             nconstraints_dict = json.load(f)
         api_config = 'speed_test_shacl_api_configs/all_heuristics.json'
         endpoint = 'http://localhost:14000/sparql'
-        shape_schema = Path('speed_test_shape_schemes_new','full_binary_tree_15_nested')
+        shape_schema = Path('speed_test_shape_schemes_new','star_graph_26_multiple_shapes_per_class_distinct')
         constraints_separate = False
-        join_optimized = True
+        join_optimized = False
         k = 0
         try:
-            result = validation_engine_experiment(f"{shape_schema.name}_{api_config.replace('/','_')}_{constraints_separate}_{k}", endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate,use_outer_join=join_optimized, order_by_cardinality=join_optimized )
+            result = validation_engine_experiment(f"{shape_schema.name}_{api_config.replace('/','_')}_{constraints_separate}_{k}", endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate,use_outer_join=True, optimize_intermediate_results=True )
             result.result()
         except Exception as e:
             result.cancel()

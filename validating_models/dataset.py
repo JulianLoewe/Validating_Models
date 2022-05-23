@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 from functools import lru_cache
+import itertools
+import json
+from pathlib import Path
 
 from .constraint import Constraint, InvertedPredictionConstraint, InvertedShaclSchemaConstraint, PredictionConstraint, ShaclSchemaConstraint
 from .shacl_validation_engine import Communicator,ReducedTravshaclCommunicator
@@ -537,22 +540,33 @@ class BaseDataset(Dataset):
         """
         not_joined_yet = set()
         not_calculated_yet = []
+        class_to_identifier= {}
         for constraint in constraints:
             if not constraint.shacl_identifier in self.sample_to_node_mapping.columns:
                 # The Join was not yet performed
                 not_joined_yet.add(constraint.shacl_identifier)
+
+                with open(Path(constraint.shape_schema_dir, f'{constraint.target_shape}.json'), 'r') as f:
+                    shape = json.load(f)
+                    if 'class' in shape['targetDef']:
+                        target_class = shape['targetDef']['class']
+                    else:
+                        target_class = 'NONE'
+                    if not target_class in class_to_identifier:
+                        class_to_identifier[target_class] = set([constraint.shacl_identifier])   
+                    else:
+                        class_to_identifier[target_class].add(constraint.shacl_identifier)
                 if not constraint.shacl_identifier in self.shacl_validation_results:
                     # The are no shacl schema validation results yet
                     not_calculated_yet.append(constraint)
-
+                
         # Calculate the shacl schema validation results for the given constraints
-        self.calculate_shacl_schema_valiation_results(not_calculated_yet, checker = checker)
-        
+        self.calculate_shacl_schema_valiation_results(not_calculated_yet, checker = checker)                
+
         if get_hyperparameter_value('use_outer_join'):
-            self.sample_to_node_mapping = self._outer_join_pandas(not_joined_yet)
+            self.sample_to_node_mapping = self._outer_join_pandas(not_joined_yet, class_to_identifier)
         else:
-            for identifier in not_joined_yet:
-                self.sample_to_node_mapping = self._index_join_pandas(identifier)
+            self.sample_to_node_mapping = self._index_join_pandas(not_joined_yet, class_to_identifier)
         
         result_identifiers = [constraint.shacl_identifier for constraint in constraints]
         if indices != None:
@@ -571,35 +585,46 @@ class BaseDataset(Dataset):
         return result
     
     @time_join
-    def _index_join_pandas(self, what): # left outer join
+    def _index_join_pandas(self, identifiers, class_to_identifier): # left outer join
         print('Directly joining with the sample to node mapping!')
-        joined_result = self.sample_to_node_mapping.join(self.shacl_validation_results[what], on=self.seed_var)
-        return joined_result
+        for identifier in identifiers:
+            self.sample_to_node_mapping = self.sample_to_node_mapping.join(self.shacl_validation_results[identifier], on=self.seed_var)
+        return self.sample_to_node_mapping
     
     @time_join
-    def _outer_join_pandas(self, what):
+    def _outer_join_pandas(self, identifiers, class_to_identifier):
         print('Using the outer join')
-        if isinstance(what, list) and len(what) == 1:
-            what = what.pop()
-            return self.sample_to_node_mapping.join(self.shacl_validation_results[what], on=self.seed_var)
-        elif isinstance(what, str):
-            return self.sample_to_node_mapping.join(self.shacl_validation_results[what], on=self.seed_var)
+        if isinstance(identifiers, list) and len(identifiers) == 1:
+            identifiers = identifiers.pop()
+            return self.sample_to_node_mapping.join(self.shacl_validation_results[identifiers], on=self.seed_var)
+        elif isinstance(identifiers, str):
+            return self.sample_to_node_mapping.join(self.shacl_validation_results[identifiers], on=self.seed_var)
         else:
-            if get_hyperparameter_value('order_by_cardinality'):
+            if get_hyperparameter_value('optimize_intermediate_results'):
                 print('Ordering by cardinality')
-                what = sorted(what, key=lambda x: len(self.shacl_validation_results[x]), reverse=False)
-            
-            first_key = what.pop() # shacl results are joined first with full outer join and afterwards joined with the mapping with a left outer join
+                if 'NONE' in class_to_identifier:
+                    remaining_identifiers = sorted(list(class_to_identifier['NONE']), key = lambda x: len(self.shacl_validation_results[x]))
+                else:
+                    remaining_identifiers = []
+                print(class_to_identifier)
+                class_to_identifier = {classe: list(identif) for classe, identif in class_to_identifier.items() if classe != 'NONE'}
+                ordered_classes = sorted(list(class_to_identifier.keys()), key = lambda x: len(self.shacl_validation_results[class_to_identifier[x][0]]))
+                print(ordered_classes)
+                print(remaining_identifiers)
+                identifiers = list(itertools.chain.from_iterable([class_to_identifier[classe] for classe in ordered_classes])) + remaining_identifiers
+                print([(identifier, len(self.shacl_validation_results[identifier])) for identifier in identifiers])
+
+            first_key = identifiers.pop() # shacl results are joined first with full outer join and afterwards joined with the mapping with a left outer join
             
             if get_hyperparameter_value('not_pandas_optimized'):
                 print('Using not pandas optimized join')
                 result = self.shacl_validation_results[first_key]
-                for key in what:
+                for key in identifiers:
                     result = result.join(self.shacl_validation_results[key], how='outer')
                     
                 return self.sample_to_node_mapping.join(result, on=self.seed_var)
             
-            return self.sample_to_node_mapping.join(self.shacl_validation_results[first_key].join([self.shacl_validation_results[key] for key in what], how='outer'), on=self.seed_var)
+            return self.sample_to_node_mapping.join(self.shacl_validation_results[first_key].join([self.shacl_validation_results[key] for key in identifiers], how='outer'), on=self.seed_var)
 
     def get_sample_to_node_mapping(self, indices=None):
         """Returns the sample-to-node mapping.

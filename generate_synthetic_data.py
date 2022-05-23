@@ -43,9 +43,9 @@ def process_combination(shape_schema_dir, type):
 
     config_file = generate_config(type, nconstraints, new_shape_schema_dir.parent, graph_name, nshapes)
     # Generate data
-    # generate_kg(new_shape_schema_dir, config_file,f'speed_test_kg/{graph_name}/')
-    # shutil.copyfile(f'speed_test_kg/{graph_name}/data.ttl', f'speed_test_kg/data/data_{graph_name}.ttl')
-    # shutil.rmtree(f'speed_test_kg/{graph_name}')
+    generate_kg(new_shape_schema_dir, config_file,f'speed_test_kg/{graph_name}/')
+    shutil.copyfile(f'speed_test_kg/{graph_name}/data.ttl', f'speed_test_kg/data/data_{graph_name}.ttl')
+    shutil.rmtree(f'speed_test_kg/{graph_name}')
     return (nshapes-nconstraints, nshapes)
 
 if __name__ == '__main__':
