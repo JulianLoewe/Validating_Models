@@ -78,6 +78,7 @@ class StatsCollector():
     
     def _shutdown(self):
         del self.stats_queue
+        self.stats_queue = None
 
 STATS_COLLECTOR = StatsCollector()
 
