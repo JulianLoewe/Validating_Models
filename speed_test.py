@@ -219,7 +219,7 @@ def main():
     args = parser.parse_args()
 
 
-    NUM_REPS = 5
+    NUM_REPS = 2
     
     if args.experiment == "VizDataset":
         dataset = create_dataset(200, 2, 200)
@@ -242,19 +242,24 @@ def main():
         with open(nconstraints, 'r') as f:
             nconstraints_dict = json.load(f)
         endpoint = 'http://localhost:14000/sparql'
-        for shape_schema in Path('speed_test_shape_schemes_new').glob('*/**'):
-            for api_config in all_configs:
-                api_config = str(api_config)
-                for constraints_separate in [False]:
-                    for use_outer_join in [True, False]:
+        for constraints_separate in [False, True]:
+            print('Constraints_separate')
+            for shape_schema in Path('speed_test_shape_schemes_new').glob('*/**'):
+                print(shape_schema)
+                for api_config in all_configs:
+                    api_config = str(api_config)
+                    print(api_config)
+                    for use_outer_join in [True]:
                         for k in range(NUM_REPS):
                             try:
                                 result = validation_engine_experiment(f"{shape_schema.name}_{api_config.replace('/','_')}_{constraints_separate}_{k}", endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate, use_outer_join=use_outer_join)
                                 result.result()
                             except Exception as e:
+                                print('Exception!')
                                 print(e)
                                 result.cancel()
                             except KeyboardInterrupt:
+                                print('KeyboardInterrupt')
                                 result.cancel()
                                 exit()
 
