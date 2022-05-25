@@ -300,8 +300,17 @@ def main():
                 for not_pandas_optimized in not_pandas_optimized_set:
                     for optimize_intermediate_results in optimize_intermediate_results_set:
                         for k in range(NUM_REPS):
-                            join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nsamples{n_samples}-{k}',join_outer, optimize_intermediate_results, not_pandas_optimized, n_samples=n_samples).result()
-                    
+                            try:
+                                result = join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nsamples{n_samples}-{k}',join_outer, optimize_intermediate_results, not_pandas_optimized, n_samples=n_samples)
+                                result.result()
+                            except Exception as e:
+                                print('Exception!')
+                                print(e)
+                                result.cancel()
+                            except KeyboardInterrupt:
+                                print('KeyboardInterrupt')
+                                result.cancel()
+                                exit()
         for n_nodes in n_nodes_list:
             for join_outer in [False, True]:
                 if join_outer:
@@ -314,8 +323,17 @@ def main():
                 for not_pandas_optimized in not_pandas_optimized_set:
                     for optimize_intermediate_results in optimize_intermediate_results_set:
                         for k in range(NUM_REPS):
-                            join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nnodes{n_nodes}-{k}',join_outer, optimize_intermediate_results, not_pandas_optimized, n_nodes=n_nodes).result()
-        
+                            try:
+                                result = join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nnodes{n_nodes}-{k}',join_outer, optimize_intermediate_results, not_pandas_optimized, n_nodes=n_nodes)
+                                result.result()
+                            except Exception as e:
+                                print('Exception!')
+                                print(e)
+                                result.cancel()
+                            except KeyboardInterrupt:
+                                print('KeyboardInterrupt')
+                                result.cancel()
+                                exit()
         for n_constraints in n_constraints_list:
             for join_outer in [False, True]:
                 if join_outer:
@@ -328,7 +346,17 @@ def main():
                 for not_pandas_optimized in not_pandas_optimized_set:
                     for optimize_intermediate_results in optimize_intermediate_results_set:
                         for k in range(NUM_REPS):
-                            join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nconstraints{n_constraints}-{k}',join_outer, optimize_intermediate_results,not_pandas_optimized, n_constraints=n_constraints).result()
+                            try:    
+                                result = join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nconstraints{n_constraints}-{k}',join_outer, optimize_intermediate_results,not_pandas_optimized, n_constraints=n_constraints)
+                                result.result()
+                            except Exception as e:
+                                print('Exception!')
+                                print(e)
+                                result.cancel()
+                            except KeyboardInterrupt:
+                                print('KeyboardInterrupt')
+                                result.cancel()
+                                exit()
 
     elif args.experiment == "treevizParallelSerial":
         nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)
