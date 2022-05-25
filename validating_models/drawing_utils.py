@@ -171,8 +171,13 @@ class Visualization(ABC):
             t.set_rotation(orientation)
         return self
 
-    def draw_legend(self):
+    def draw_legend(self, inside=False):
         '''Draws the legend next to the visualization.
+
+        Parameters
+        ----------
+            inside : boolean
+                Whether the legend should be drawn inside the figure or next to it.
 
         Returns
         -------
@@ -182,8 +187,12 @@ class Visualization(ABC):
         hl = list(zip(*self.ax.get_legend_handles_labels()))
         hl = hl + self.proxy_artists
         h = zip(*hl)
-        self.ax.legend(*h, bbox_to_anchor=(1.04, 1), loc="upper left",
-                       fontsize=self._fontsize, title_fontsize=self._fontsize, title='Categories', bbox_transform=self.fig.transFigure)
+        if not inside:
+            self.ax.legend(*h, bbox_to_anchor=(1.04, 1), loc="upper left",
+                        fontsize=self._fontsize, title_fontsize=self._fontsize, title='Categories', bbox_transform=self.fig.transFigure)
+        else:
+            self.ax.legend(*h, loc="upper right",
+                        fontsize=self._fontsize, title_fontsize=self._fontsize, bbox_transform=self.fig.transFigure)
         return self
 
     @time_io
@@ -306,6 +315,8 @@ class GroupedStackedHistogram(Visualization):
             The size of the font to be used.
         graph_colors : dict, optional
             A dictionary of color options to be set (See dtreeviz documentation). 
+        data_std : list of numpy.ndarray with shape (#groups, #bars_per_group)
+            The standard deviations to visualize matching to the data parameter, defaults to None
 
     Example
     -------
@@ -336,8 +347,14 @@ class GroupedStackedHistogram(Visualization):
                  proxy_artists=None,
                  fontname='DejaVu Sans',
                  fontsize=14,
-                 graph_colors=None) -> None:
+                 graph_colors=None,
+                 data_std=None) -> None:
         self._data = data
+        if isinstance(data_std, list):
+            print('std given')
+            self._data_std = data_std
+        else:
+            self._data_std = [np.zeros_like(self._data[0]) for i in range(len(self._data))]
         self._num_groups = self._data[0].shape[0]
         self._num_bars_per_group = self._data[0].shape[1]
         super().__init__(figure_size, ax, proxy_artists, fontname, fontsize, graph_colors)
@@ -433,6 +450,7 @@ class GroupedStackedHistogram(Visualization):
         # Preprocess data
         for i in range(len(self._data)):
             self._data[i] = self._data[i].reshape((-1,))
+            self._data_std[i] = self._data_std[i].reshape((-1,))                
 
         if not space_between_groups:
             bar_locations = np.arange(start=0, stop=num_bars, step=1)
@@ -445,11 +463,12 @@ class GroupedStackedHistogram(Visualization):
                                        stop=self._num_groups + num_bars, step=self._num_bars_per_group + self._width) + 0.01  # bar_locations cannot be equal to leaf_locations therefore 0.01 is added
 
         bottom = np.zeros_like(self._data[0])
-        for i, array in enumerate(self._data):
-            if np.count_nonzero(array) != 0:
-                self.ax.bar(bar_locations, array, self._width, bottom=bottom,edgecolor=self._graph_colors['pie'],
-                            color=categorical_colors[i], lw=.3, align='center', label=categorical_labels[i])
-                bottom = bottom + array
+        for i, array in enumerate(zip(self._data, self._data_std)):
+            if np.count_nonzero(array[0]) != 0:
+                print(array)
+                self.ax.bar(bar_locations, array[0], self._width, bottom=bottom,edgecolor=self._graph_colors['pie'],
+                            color=categorical_colors[i], lw=.3, align='center', label=categorical_labels[i], yerr=array[1])
+                bottom = bottom + array[0]
 
         # Bars (Major Labels)
         max_height = 0

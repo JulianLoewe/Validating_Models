@@ -150,10 +150,10 @@ def samples_to_node_experiment(id, node_to_samples_non_optimized, max_depth = 5,
     STATS_COLLECTOR.to_file('samples_to_node_times.csv')
 
 @concurrent.process(timeout=300, daemon=False)
-def join_strategie_experiment(id, use_outer_join, order_by_cardinality, not_pandas_optimized, n_samples = 4**10, n_nodes = 4**10, n_constraints = 5, n_classes=2):
+def join_strategie_experiment(id, use_outer_join, optimize_intermediate_results, not_pandas_optimized, n_samples = 4**10, n_nodes = 4**10, n_constraints = 5, n_classes=2):
     from validating_models.stats import STATS_COLLECTOR
-    STATS_COLLECTOR.activate(hyperparameters = ['n_samples','n_nodes','n_constraints','use_outer_join', 'order_by_cardinality','not_pandas_optimized'])
-    STATS_COLLECTOR.new_run(hyperparameters = [n_samples, n_nodes, n_constraints, use_outer_join, order_by_cardinality, not_pandas_optimized])
+    STATS_COLLECTOR.activate(hyperparameters = ['n_samples','n_nodes','n_constraints','use_outer_join', 'optimize_intermediate_results','not_pandas_optimized'])
+    STATS_COLLECTOR.new_run(hyperparameters = [n_samples, n_nodes, n_constraints, use_outer_join, optimize_intermediate_results, not_pandas_optimized])
 
     constraints = [ ShaclSchemaConstraint(name=f'Constraint {i}', shape_schema_dir=f'dir{i}', target_shape='ts') for i in range(n_constraints)]
     dataset = create_dataset(n_samples, n_classes, n_nodes)
@@ -278,24 +278,11 @@ def main():
                             samples_to_node_experiment(f'node_samples_{non_optimized}_{n_samples}_{max_depth}_{k}', n_samples=n_samples, max_depth=max_depth, node_to_samples_non_optimized=non_optimized).result()
     
     elif args.experiment == "custom":
-        all_configs = Path('speed_test_shacl_api_configs/').glob('*.json')
-        nconstraints = Path('speed_test_shape_schemes_new','nconstraints.json')
-        with open(nconstraints, 'r') as f:
-            nconstraints_dict = json.load(f)
-        api_config = 'speed_test_shacl_api_configs/all_heuristics.json'
-        endpoint = 'http://localhost:14000/sparql'
-        shape_schema = Path('speed_test_shape_schemes_new','star_graph_26_multiple_shapes_per_class_distinct')
-        constraints_separate = False
-        join_optimized = False
-        k = 0
-        try:
-            result = validation_engine_experiment(f"{shape_schema.name}_{api_config.replace('/','_')}_{constraints_separate}_{k}", endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate,use_outer_join=True, optimize_intermediate_results=True )
-            result.result()
-        except Exception as e:
-            result.cancel()
-            print(e)
-            traceback.print_stack()
-            exit()
+        n_nodes_list = [10**6, 2 * 10**6, 10 * 10**6]
+        for join_outer in [True, False]:
+            for n_nodes in n_nodes_list:
+                join_strategie_experiment(f'nnodes{n_nodes}',join_outer, join_outer, False, n_nodes=n_nodes).result()
+        
 
     elif args.experiment == "join":    
         nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)
@@ -304,44 +291,44 @@ def main():
         for n_samples in nsamples_list:
             for join_outer in [False, True]:
                 if join_outer:
-                    order_by_cardinality_set = [True,False]
+                    optimize_intermediate_results_set = [True,False]
                     not_pandas_optimized_set = [False, True]
                 else:
-                    order_by_cardinality_set = [False]
+                    optimize_intermediate_results_set = [False]
                     not_pandas_optimized_set = [True]
 
                 for not_pandas_optimized in not_pandas_optimized_set:
-                    for order_by_cardinality in order_by_cardinality_set:
+                    for optimize_intermediate_results in optimize_intermediate_results_set:
                         for k in range(NUM_REPS):
-                            join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{order_by_cardinality}-nsamples{n_samples}-{k}',join_outer, order_by_cardinality, not_pandas_optimized, n_samples=n_samples).result()
+                            join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nsamples{n_samples}-{k}',join_outer, optimize_intermediate_results, not_pandas_optimized, n_samples=n_samples).result()
                     
         for n_nodes in n_nodes_list:
             for join_outer in [False, True]:
                 if join_outer:
-                    order_by_cardinality_set = [True,False]
+                    optimize_intermediate_results_set = [True,False]
                     not_pandas_optimized_set = [False, True]
                 else:
-                    order_by_cardinality_set = [False]
+                    optimize_intermediate_results_set = [False]
                     not_pandas_optimized_set = [True]
 
                 for not_pandas_optimized in not_pandas_optimized_set:
-                    for order_by_cardinality in order_by_cardinality_set:
+                    for optimize_intermediate_results in optimize_intermediate_results_set:
                         for k in range(NUM_REPS):
-                            join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{order_by_cardinality}-nnodes{n_nodes}-{k}',join_outer, order_by_cardinality, not_pandas_optimized, n_nodes=n_nodes).result()
+                            join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nnodes{n_nodes}-{k}',join_outer, optimize_intermediate_results, not_pandas_optimized, n_nodes=n_nodes).result()
         
         for n_constraints in n_constraints_list:
             for join_outer in [False, True]:
                 if join_outer:
-                    order_by_cardinality_set = [True,False]
+                    optimize_intermediate_results_set = [True,False]
                     not_pandas_optimized_set = [False, True]
                 else:
-                    order_by_cardinality_set = [False]
+                    optimize_intermediate_results_set = [False]
                     not_pandas_optimized_set = [True]
 
                 for not_pandas_optimized in not_pandas_optimized_set:
-                    for order_by_cardinality in order_by_cardinality_set:
+                    for optimize_intermediate_results in optimize_intermediate_results_set:
                         for k in range(NUM_REPS):
-                            join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{order_by_cardinality}-nconstraints{n_constraints}-{k}',join_outer, order_by_cardinality,not_pandas_optimized, n_constraints=n_constraints).result()
+                            join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nconstraints{n_constraints}-{k}',join_outer, optimize_intermediate_results,not_pandas_optimized, n_constraints=n_constraints).result()
 
     elif args.experiment == "treevizParallelSerial":
         nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)

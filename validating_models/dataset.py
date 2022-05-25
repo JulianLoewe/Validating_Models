@@ -17,7 +17,7 @@ from typing import Union, List, Mapping
 from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib.plugins import sparql
 
-from validating_models.stats import get_decorator, get_hyperparameter_value
+from validating_models.stats import get_decorator, get_hyperparameter_value, new_entry
 
 time_join = get_decorator('join')
 time_shacl_schema_validation = get_decorator('shacl_schema_validation')
@@ -513,6 +513,7 @@ class BaseDataset(Dataset):
 
                     print("Number of validated targets: " + str(self.shacl_validation_results[shacl_identifier].sum()))
         else:
+            new_entry('n_unique_nodes',len(self.unique_seed_nodes))
             for constraint in constraints:
                 if constraint.shacl_identifier not in self.shacl_validation_results:
                     self._calculate_shacl_schema_validation_result(constraint)
@@ -545,13 +546,13 @@ class BaseDataset(Dataset):
             if not constraint.shacl_identifier in self.sample_to_node_mapping.columns:
                 # The Join was not yet performed
                 not_joined_yet.add(constraint.shacl_identifier)
-
-                with open(Path(constraint.shape_schema_dir, f'{constraint.target_shape}.json'), 'r') as f:
-                    shape = json.load(f)
-                    if 'class' in shape['targetDef']:
+                try:
+                    with open(Path(constraint.shape_schema_dir, f'{constraint.target_shape}.json'), 'r') as f:
+                        shape = json.load(f)
                         target_class = shape['targetDef']['class']
-                    else:
-                        target_class = 'NONE'
+                except:
+                    target_class = 'NONE'
+                finally:
                     if not target_class in class_to_identifier:
                         class_to_identifier[target_class] = set([constraint.shacl_identifier])   
                     else:
@@ -606,13 +607,11 @@ class BaseDataset(Dataset):
                     remaining_identifiers = sorted(list(class_to_identifier['NONE']), key = lambda x: len(self.shacl_validation_results[x]))
                 else:
                     remaining_identifiers = []
-                print(class_to_identifier)
                 class_to_identifier = {classe: list(identif) for classe, identif in class_to_identifier.items() if classe != 'NONE'}
                 ordered_classes = sorted(list(class_to_identifier.keys()), key = lambda x: len(self.shacl_validation_results[class_to_identifier[x][0]]))
-                print(ordered_classes)
-                print(remaining_identifiers)
                 identifiers = list(itertools.chain.from_iterable([class_to_identifier[classe] for classe in ordered_classes])) + remaining_identifiers
-                print([(identifier, len(self.shacl_validation_results[identifier])) for identifier in identifiers])
+            
+            #print([(identifier, len(self.shacl_validation_results[identifier])) for identifier in identifiers])
 
             first_key = identifiers.pop() # shacl results are joined first with full outer join and afterwards joined with the mapping with a left outer join
             
