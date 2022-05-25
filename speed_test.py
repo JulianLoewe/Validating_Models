@@ -284,7 +284,7 @@ def main():
                 join_strategie_experiment(f'nnodes{n_nodes}',join_outer, join_outer, False, n_nodes=n_nodes).result()
         
 
-    elif args.experiment == "join":    
+    elif args.experiment == "join":
         nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)
         n_nodes_list = np.linspace(4**4,4**11, num= 20, dtype=np.int_)
         n_constraints_list = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
@@ -292,10 +292,10 @@ def main():
             for join_outer in [False, True]:
                 if join_outer:
                     optimize_intermediate_results_set = [True,False]
-                    not_pandas_optimized_set = [False, True]
                 else:
                     optimize_intermediate_results_set = [False]
-                    not_pandas_optimized_set = [True]
+
+                not_pandas_optimized_set = [False]
 
                 for not_pandas_optimized in not_pandas_optimized_set:
                     for optimize_intermediate_results in optimize_intermediate_results_set:
@@ -306,10 +306,10 @@ def main():
             for join_outer in [False, True]:
                 if join_outer:
                     optimize_intermediate_results_set = [True,False]
-                    not_pandas_optimized_set = [False, True]
                 else:
                     optimize_intermediate_results_set = [False]
-                    not_pandas_optimized_set = [True]
+
+                not_pandas_optimized_set = [False]
 
                 for not_pandas_optimized in not_pandas_optimized_set:
                     for optimize_intermediate_results in optimize_intermediate_results_set:
@@ -320,10 +320,10 @@ def main():
             for join_outer in [False, True]:
                 if join_outer:
                     optimize_intermediate_results_set = [True,False]
-                    not_pandas_optimized_set = [False, True]
                 else:
                     optimize_intermediate_results_set = [False]
-                    not_pandas_optimized_set = [True]
+
+                not_pandas_optimized_set = [False]
 
                 for not_pandas_optimized in not_pandas_optimized_set:
                     for optimize_intermediate_results in optimize_intermediate_results_set:
