@@ -589,6 +589,7 @@ class BaseDataset(Dataset):
     def _index_join_pandas(self, identifiers, class_to_identifier): # left outer join
         print('Directly joining with the sample to node mapping!')
         for identifier in identifiers:
+            print(f"Joining {identifier}")
             self.sample_to_node_mapping = self.sample_to_node_mapping.join(self.shacl_validation_results[identifier], on=self.seed_var)
         return self.sample_to_node_mapping
     

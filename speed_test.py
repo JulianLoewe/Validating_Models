@@ -48,9 +48,11 @@ def file_cache(what):
             what_id = '_'.join([str(arg) for arg in list(args) + list(kwargs.values()) if '<' not in str(arg)])
             what_cache_path = os.path.join(WHAT_CACHE, f'{what_id}.pickle')
             if not os.path.isfile(what_cache_path):
+                print(f'Creating {what_cache_path}')
                 res = func(*args, **kwargs)
                 with open(what_cache_path, 'wb') as f:
                     pickle.dump(res,f)
+                print(f'Done {what_cache_path}')
             else:
                 print(f'Reusing {what_cache_path}')
                 with open(what_cache_path, 'rb') as f:
@@ -69,28 +71,24 @@ def create_data_frame(n_samples, n_classes):
 
 @file_cache('dataset')
 def create_dataset(n_samples, n_classes, n_nodes, node_range = None):
-    print('Creating Dataset...', end='')
     df = create_data_frame(n_samples, n_classes)
     if node_range == None:
         node_range = range(n_nodes)
     nodes = [f'entity_{int(i):010d}' for i in node_range]
     sample_to_node_mapping = pd.DataFrame(data=np.random.choice(nodes, size=(n_samples,1)), columns=['x'])
     dataset = BaseDataset(df, target_name = 'TARGET', seed_query = None, seed_var = 'x', sample_to_node_mapping = sample_to_node_mapping, random_schema_validation = True, categorical_mapping={'TARGET': {0:'0', 1: '1'}})
-    print('Done')
     return dataset
 
 @file_cache('model')
 def train_decision_tree(max_depth, n_samples, n_classes, dataset):
-    print('Training Tree...', end='')
     tree_classifier = DecisionTreeClassifier(max_depth=max_depth)
     tree_classifier.fit(dataset.x_data(), dataset.y_data())
-    print('Done')
     return tree_classifier
 
 def profile(func, id, *args, pass_id=False, **kwargs):
-    print(f"Running Experiment: {id}")
-    profiler = Profiler()
-    profiler.start()
+    print(f"Running Experiment: {args} {kwargs}")
+    #profiler = Profiler()
+    #profiler.start()
     start = time.time()
     if pass_id:
         res = func(id, *args, **kwargs)
@@ -98,11 +96,11 @@ def profile(func, id, *args, pass_id=False, **kwargs):
         res = func(*args, **kwargs)
     end = time.time()
     new_entry('overall',end-start)
-    profiler.stop()
-    os.makedirs(f".profiles/{func.__name__}", exist_ok=True)
-    with open(f".profiles/{func.__name__}/profil_{id}.html","w") as f:
-        f.write(profiler.output_html())
-    
+    #profiler.stop()
+    #os.makedirs(f".profiles/{func.__name__}", exist_ok=True)
+    #with open(f".profiles/{func.__name__}/profil_{id}.html","w") as f:
+    #    f.write(profiler.output_html())
+    print(f"Experiment done!")
     return res
 
 
@@ -126,8 +124,6 @@ def dtreeviz_experiment(id,visualize_in_parallel, max_depth = 5, n_classes=2, n_
     STATS_COLLECTOR.activate(hyperparameters=['visualize_in_parallel','max_depth','n_constraints','n_samples','n_nodes','fancy','coverage'])
     STATS_COLLECTOR.new_run(hyperparameters=[visualize_in_parallel, max_depth, n_constraints, n_samples, n_nodes, fancy, coverage])
 
-    print(f'Running experiment {id} with [max_depth = {max_depth}, n_classes = {n_classes}, n_samples = {n_samples}, n_nodes = {n_nodes}, n_constraints = {n_constraints}, parallel = {visualize_in_parallel}, fancy = {fancy}, coverage = {coverage}]')
-    
     constraints = [ ShaclSchemaConstraint(name=f'Constraint {i}',shape_schema_dir=f'dir{i}', target_shape='ts') for i in range(n_constraints)]
     dataset = create_dataset(n_samples, n_classes, n_nodes)
     tree_classifier = train_decision_tree(max_depth, n_samples, n_classes, dataset)
@@ -234,6 +230,9 @@ def validation_engine_experiment(id, endpoint, api_config, shape_schema_dir, n_c
 # Running the experiments                                                                       #
 #################################################################################################
 
+import traceback
+import sys
+
 def main():
     parser = ArgumentParser(description='Runs the specified experiment')
     parser.add_argument('experiment', type=str)
@@ -293,15 +292,14 @@ def main():
                             samples_to_node_experiment(f'node_samples_{non_optimized}_{n_samples}_{max_depth}_{k}', n_samples=n_samples, max_depth=max_depth, node_to_samples_non_optimized=non_optimized).result()
     
     elif args.experiment == "custom":
-        n_nodes_list = [10**6, 2 * 10**6, 10 * 10**6]
-        for join_outer in [True, False]:
+        n_nodes_list = 4**11 * np.arange(1,10)
+        for join_outer in [False]:
             for n_nodes in n_nodes_list:
                 join_strategie_experiment(f'nnodes{n_nodes}',join_outer, join_outer, False, n_nodes=n_nodes).result()
-        
 
     elif args.experiment == "join":
-        nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)
-        n_nodes_list = np.linspace(4**4,4**11, num= 20, dtype=np.int_)
+        nsamples_list = np.linspace(4**4, 4**11, num = 20, dtype=np.int_)
+        n_nodes_list = np.linspace(4**4, 4**11, num= 20, dtype=np.int_)
         n_constraints_list = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
         for n_samples in nsamples_list:
             for join_outer in [False, True]:
@@ -321,6 +319,7 @@ def main():
                             except Exception as e:
                                 print('Exception!')
                                 print(e)
+                                traceback.print_exception(*sys.exc_info())
                                 result.cancel()
                             except KeyboardInterrupt:
                                 print('KeyboardInterrupt')
