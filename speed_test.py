@@ -373,20 +373,19 @@ def main():
                                 exit()
 
     elif args.experiment == "treevizParallelSerial":
-        nsamples_list = np.linspace(4**4,4**11, num = 20, dtype=np.int_)
-        n_nodes_list = np.linspace(256,4**10, num= 20, dtype=np.int_)
-        n_constraints_list = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20])
-        max_depths = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13])
+        nsamples_list = np.linspace(4**4, 4**11, num = 15, dtype=np.int_)
+        n_nodes_list = np.linspace(4**4, 4**10, num = 7, dtype=np.int_)
+        n_constraints_list = np.array([1,3,5,7,9,11,13,15,17,19])
+        max_depths = np.array([1,2,3,4,5,6,7,8,9,10,11,12])
 
         for n_samples in nsamples_list:
-            for visualize_in_parallel in [True]:
+            for visualize_in_parallel in [False, True]:
                 for k in range(NUM_REPS):
                     try:
                         dtreeviz_experiment(f'{visualize_in_parallel}-nsamples{n_samples}-{k}',visualize_in_parallel, n_samples=n_samples).result()
                     except Exception as e:
                         print(e)
-                        traceback.print_exc()
-                        return
+                        traceback.print_exception(*sys.exc_info())
         
         for n_nodes in n_nodes_list:
             for visualize_in_parallel in [False, True]:
@@ -395,6 +394,7 @@ def main():
                         dtreeviz_experiment(f'{visualize_in_parallel}-nnodes{n_nodes}-{k}',visualize_in_parallel, n_nodes=n_nodes).result()
                     except Exception as e:
                         print(e)
+                        traceback.print_exception(*sys.exc_info())
         
         for n_constraints in n_constraints_list:
             for visualize_in_parallel in [False, True]:
@@ -403,6 +403,7 @@ def main():
                         dtreeviz_experiment(f'{visualize_in_parallel}-nconstraints{n_constraints}-{k}',visualize_in_parallel, n_constraints=n_constraints).result()
                     except Exception as e:
                         print(e)
+                        traceback.print_exception(*sys.exc_info())
 
         for max_depth in max_depths:
             for visualize_in_parallel in [False, True]:
@@ -411,6 +412,7 @@ def main():
                         dtreeviz_experiment(f'{visualize_in_parallel}-maxdepth{max_depth}-{k}',visualize_in_parallel, max_depth=max_depth).result()
                     except Exception as e:
                         print(e)
+                        traceback.print_exception(*sys.exc_info())
 
 if __name__ == '__main__':
     main()
