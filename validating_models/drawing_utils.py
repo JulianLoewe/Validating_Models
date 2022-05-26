@@ -465,7 +465,6 @@ class GroupedStackedHistogram(Visualization):
         bottom = np.zeros_like(self._data[0])
         for i, array in enumerate(zip(self._data, self._data_std)):
             if np.count_nonzero(array[0]) != 0:
-                print(array)
                 self.ax.bar(bar_locations, array[0], self._width, bottom=bottom,edgecolor=self._graph_colors['pie'],
                             color=categorical_colors[i], lw=.3, align='center', label=categorical_labels[i], yerr=array[1])
                 bottom = bottom + array[0]
