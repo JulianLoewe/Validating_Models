@@ -119,7 +119,7 @@ def exp_pure_dtreeviz(id, tree_classifier, dataset, fancy):
     plot.save(f'.output/test_{id}.svg')
 
 @concurrent.process(timeout=300, daemon=False)
-def dtreeviz_experiment(id,visualize_in_parallel, max_depth = 5, n_classes=2, n_samples=4**10, n_nodes=4**10, n_constraints=5, fancy=True, coverage=True):
+def dtreeviz_experiment(id,visualize_in_parallel, max_depth = 5, n_classes=2, n_samples=4**10, n_nodes=4**10, n_constraints=5, fancy=True, coverage=True, run_dtreeviz=False):
     from validating_models.stats import STATS_COLLECTOR 
     STATS_COLLECTOR.activate(hyperparameters=['visualize_in_parallel','max_depth','n_constraints','n_samples','n_nodes','fancy','coverage'])
     STATS_COLLECTOR.new_run(hyperparameters=[visualize_in_parallel, max_depth, n_constraints, n_samples, n_nodes, fancy, coverage])
@@ -132,12 +132,12 @@ def dtreeviz_experiment(id,visualize_in_parallel, max_depth = 5, n_classes=2, n_
     profile(exp_validating_models_dtreeviz,id, tree_classifier, checker, constraints, non_applicable_counts=True, coverage=coverage, fancy=fancy, visualize_in_parallel=visualize_in_parallel, pass_id=True)
 
     STATS_COLLECTOR.to_file('parallel_vs_serial_times.csv')
-
-    STATS_COLLECTOR.activate(hyperparameters=['max_depth','n_constraints','n_samples','n_nodes','fancy'])
-    STATS_COLLECTOR.new_run(hyperparameters=[max_depth, n_constraints, n_samples, n_nodes, fancy])
-    profile(exp_pure_dtreeviz, id, tree_classifier, dataset, fancy,pass_id=True)
-
-    STATS_COLLECTOR.to_file('dtreeviz_times.csv')
+    
+    if run_dtreeviz:
+        STATS_COLLECTOR.activate(hyperparameters=['max_depth','n_constraints','n_samples','n_nodes','fancy'])
+        STATS_COLLECTOR.new_run(hyperparameters=[max_depth, n_constraints, n_samples, n_nodes, fancy])
+        profile(exp_pure_dtreeviz, id, tree_classifier, dataset, fancy,pass_id=True)
+        STATS_COLLECTOR.to_file('dtreeviz_times.csv')
 
     print(f'Running detreeviz')
 
