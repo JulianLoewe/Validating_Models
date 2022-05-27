@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import json
 from pathlib import Path
 from socket import timeout
+import uuid
 import numpy as np
 import pandas as pd
 from sklearn.datasets import make_classification
@@ -85,15 +86,12 @@ def train_decision_tree(max_depth, n_samples, n_classes, dataset):
     tree_classifier.fit(dataset.x_data(), dataset.y_data())
     return tree_classifier
 
-def profile(func, id, *args, pass_id=False, **kwargs):
+def profile(func, *args, **kwargs):
     print(f"Running Experiment: {args} {kwargs}")
     #profiler = Profiler()
     #profiler.start()
     start = time.time()
-    if pass_id:
-        res = func(id, *args, **kwargs)
-    else:
-        res = func(*args, **kwargs)
+    res = func(*args, **kwargs)
     end = time.time()
     new_entry('overall',end-start)
     #profiler.stop()
@@ -108,42 +106,42 @@ def profile(func, id, *args, pass_id=False, **kwargs):
 # The different Experiments                                                                     #
 #################################################################################################
 
-def exp_validating_models_dtreeviz(id, tree_classifier, checker, constraints,non_applicable_counts=True, coverage=True, fancy=True, visualize_in_parallel=True):
+def exp_validating_models_dtreeviz(tree_classifier, checker, constraints,non_applicable_counts=True, coverage=True, fancy=True, visualize_in_parallel=True):
     plot = viz.decision_trees.dtreeviz(tree_classifier, checker, constraints, non_applicable_counts=non_applicable_counts, coverage=coverage, fancy=fancy, visualize_in_parallel=visualize_in_parallel)
     os.makedirs(f".output", exist_ok=True)
-    plot.save(f'.output/test_{id}.svg')
+    plot.save(f'.output/test_{str(uuid.uuid1())}.svg')
 
-def exp_pure_dtreeviz(id, tree_classifier, dataset, fancy):
-    plot = dtreeviz(tree_classifier, dataset.x_data(), dataset.y_data().squeeze())
+def exp_pure_dtreeviz(tree_classifier, dataset, fancy):
+    plot = dtreeviz(tree_classifier, dataset.x_data(), dataset.y_data().squeeze(), fancy=fancy)
     os.makedirs(f".output", exist_ok=True)
-    plot.save(f'.output/test_{id}.svg')
+    plot.save(f'.output/test_{str(uuid.uuid1())}.svg')
 
-@concurrent.process(timeout=300, daemon=False)
-def dtreeviz_experiment(id,visualize_in_parallel, max_depth = 5, n_classes=2, n_samples=4**10, n_nodes=4**10, n_constraints=5, fancy=True, coverage=True, run_dtreeviz=False):
+@concurrent.process(timeout=900, daemon=False)
+def dtreeviz_experiment(visualize_in_parallel, max_depth = 5, n_classes=2, n_samples=4**10, n_nodes=4**10, n_constraints=5, fancy=True, coverage=True, run_dtreeviz=False, use_outer_join=True):
     from validating_models.stats import STATS_COLLECTOR 
-    STATS_COLLECTOR.activate(hyperparameters=['visualize_in_parallel','max_depth','n_constraints','n_samples','n_nodes','fancy','coverage'])
-    STATS_COLLECTOR.new_run(hyperparameters=[visualize_in_parallel, max_depth, n_constraints, n_samples, n_nodes, fancy, coverage])
+    STATS_COLLECTOR.activate(hyperparameters=['visualize_in_parallel','max_depth','n_constraints','n_samples','n_nodes','fancy','coverage','use_outer_join'])
+    STATS_COLLECTOR.new_run(hyperparameters=[visualize_in_parallel, max_depth, n_constraints, n_samples, n_nodes, fancy, coverage, use_outer_join])
 
     constraints = [ ShaclSchemaConstraint(name=f'Constraint {i}',shape_schema_dir=f'dir{i}', target_shape='ts') for i in range(n_constraints)]
     dataset = create_dataset(n_samples, n_classes, n_nodes)
     tree_classifier = train_decision_tree(max_depth, n_samples, n_classes, dataset)
     checker = Checker(tree_classifier.predict, dataset)
 
-    profile(exp_validating_models_dtreeviz,id, tree_classifier, checker, constraints, non_applicable_counts=True, coverage=coverage, fancy=fancy, visualize_in_parallel=visualize_in_parallel, pass_id=True)
+    profile(exp_validating_models_dtreeviz, tree_classifier, checker, constraints, non_applicable_counts=True, coverage=coverage, fancy=fancy, visualize_in_parallel=visualize_in_parallel)
 
     STATS_COLLECTOR.to_file('parallel_vs_serial_times.csv')
     
     if run_dtreeviz:
+        print(f'Running detreeviz')
         STATS_COLLECTOR.activate(hyperparameters=['max_depth','n_constraints','n_samples','n_nodes','fancy'])
         STATS_COLLECTOR.new_run(hyperparameters=[max_depth, n_constraints, n_samples, n_nodes, fancy])
-        profile(exp_pure_dtreeviz, id, tree_classifier, dataset, fancy,pass_id=True)
+        profile(exp_pure_dtreeviz, tree_classifier, dataset, fancy)
         STATS_COLLECTOR.to_file('dtreeviz_times.csv')
 
-    print(f'Running detreeviz')
 
 
 @concurrent.process(timeout=300, daemon=False)
-def samples_to_node_experiment(id, node_to_samples_non_optimized, max_depth = 5, n_samples = 4**10, n_classes = 2, n_nodes=4**10):
+def samples_to_node_experiment(node_to_samples_non_optimized, max_depth = 5, n_samples = 4**10, n_classes = 2, n_nodes=4**10):
     from validating_models.stats import STATS_COLLECTOR
     STATS_COLLECTOR.activate(hyperparameters=['max_depth', 'n_samples', 'node_to_samples_non_optimized'])
     STATS_COLLECTOR.new_run(hyperparameters=[max_depth, n_samples, node_to_samples_non_optimized])
@@ -156,19 +154,19 @@ def samples_to_node_experiment(id, node_to_samples_non_optimized, max_depth = 5,
     skd_tree = get_shadow_tree_from_checker(tree_classifier,checker)
 
     from validating_models.models.decision_tree import get_node_samples
-    profile(get_node_samples,id, skd_tree)
+    profile(get_node_samples, skd_tree)
 
     STATS_COLLECTOR.to_file('samples_to_node_times.csv')
 
 @concurrent.process(timeout=300, daemon=False)
-def join_strategie_experiment(id, use_outer_join, optimize_intermediate_results, not_pandas_optimized, n_samples = 4**10, n_nodes = 4**10, n_constraints = 5, n_classes=2):
+def join_strategie_experiment(use_outer_join, optimize_intermediate_results, not_pandas_optimized, n_samples = 4**10, n_nodes = 4**10, n_constraints = 5, n_classes=2):
     from validating_models.stats import STATS_COLLECTOR
     STATS_COLLECTOR.activate(hyperparameters = ['n_samples','n_nodes','n_constraints','use_outer_join', 'optimize_intermediate_results','not_pandas_optimized'])
     STATS_COLLECTOR.new_run(hyperparameters = [n_samples, n_nodes, n_constraints, use_outer_join, optimize_intermediate_results, not_pandas_optimized])
 
     constraints = [ ShaclSchemaConstraint(name=f'Constraint {i}', shape_schema_dir=f'dir{i}', target_shape='ts') for i in range(n_constraints)]
     dataset = create_dataset(n_samples, n_classes, n_nodes)
-    profile(dataset.get_shacl_schema_validation_results, id, constraints)
+    profile(dataset.get_shacl_schema_validation_results, constraints)
 
     STATS_COLLECTOR.to_file('join_strategie_times.csv')
 
@@ -191,7 +189,7 @@ def validation_engine_experiment_generator(endpoint, api_config, shape_schema_di
 
 
 @concurrent.process(timeout=600, daemon=False)
-def validation_engine_experiment(id, endpoint, api_config, shape_schema_dir, n_constraints, constraints_separate = None, use_outer_join = False, optimize_intermediate_results = False):
+def validation_engine_experiment(endpoint, api_config, shape_schema_dir, n_constraints, constraints_separate = None, use_outer_join = False, optimize_intermediate_results = False):
     from validating_models.stats import STATS_COLLECTOR
 
     dataset, constraints = validation_engine_experiment_generator(endpoint, api_config, shape_schema_dir, n_constraints)
@@ -199,32 +197,29 @@ def validation_engine_experiment(id, endpoint, api_config, shape_schema_dir, n_c
         for constraint in constraints[:constraints_separate]:
             STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'optimize_intermediate_results'])
             STATS_COLLECTOR.new_run(hyperparameters = [1, shape_schema_dir, api_config, constraints_separate, use_outer_join, optimize_intermediate_results ])
-            profile(dataset.get_shacl_schema_validation_results, id, [constraint])
+            profile(dataset.get_shacl_schema_validation_results, [constraint])
             STATS_COLLECTOR.to_file('validation_engine.csv')
     elif isinstance(constraints_separate, str):
-        STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'optimize_intermediate_results'])
-        STATS_COLLECTOR.new_run(hyperparameters = [1, shape_schema_dir, api_config, constraints_separate, use_outer_join, optimize_intermediate_results ])
-        for constraint in constraints[:constraints_separate]:
-            profile(dataset.get_shacl_schema_validation_results, id, [constraint])
-        STATS_COLLECTOR.to_file('validation_engine.csv')
+        if constraints_separate == 'join':
+            original = dataset.sample_to_node_mapping.copy(deep = True)
+            for join_strat in [(False, False), (True, False), (True, True)]:
+                for k in range(5):
+                    STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'optimize_intermediate_results'])
+                    STATS_COLLECTOR.new_run(hyperparameters = [1, shape_schema_dir, api_config, constraints_separate, join_strat[0], join_strat[1]])
+                    profile(dataset.get_shacl_schema_validation_results, constraints)
+                    STATS_COLLECTOR.to_file('validation_engine.csv')
+                    dataset.sample_to_node_mapping = original.copy(deep = True)
+        else:
+            STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'optimize_intermediate_results'])
+            STATS_COLLECTOR.new_run(hyperparameters = [1, shape_schema_dir, api_config, constraints_separate, use_outer_join, optimize_intermediate_results ])
+            for constraint in constraints[:constraints_separate]:
+                profile(dataset.get_shacl_schema_validation_results, [constraint])
+            STATS_COLLECTOR.to_file('validation_engine.csv')
     else:
         STATS_COLLECTOR.activate(hyperparameters = ['nconstraints','shape_schema_dir','api_config','constraints_separate','use_outer_join', 'optimize_intermediate_results'])
         STATS_COLLECTOR.new_run(hyperparameters = [n_constraints[1] - n_constraints[0], shape_schema_dir, api_config, constraints_separate, use_outer_join, optimize_intermediate_results ])
-        profile(dataset.get_shacl_schema_validation_results, id, constraints)
+        profile(dataset.get_shacl_schema_validation_results, constraints)
         STATS_COLLECTOR.to_file('validation_engine.csv')
-
-
-# @concurrent.process(timeout=600, daemon=False)
-# def test_experiment(id):
-#     from validating_models.stats import STATS_COLLECTOR
-#     from validating_models.shacl_validation_engine import ReducedTravshaclCommunicator
-#     communicator = ReducedTravshaclCommunicator('', 'http://localhost:14000/sparql','speed_test_shacl_api_configs/all_heuristics.json')
-#     STATS_COLLECTOR.activate(hyperparameters = ['id'])
-#     STATS_COLLECTOR.new_run(hyperparameters = [id])
-#     dataset, constraints = star_schema_experiment_generator('http://localhost:14000/sparql', 'speed_test_shacl_api_configs/all_heuristics.json', 'speed_test_shape_schemes/star_graph_25')
-#     profile(dataset.calculate_shacl_schema_valiation_results, id, constraints)
-#     #profile(communicator.request, id, 'SELECT ?x WHERE { ?x a <http://example.com/Qs> }','speed_test_shape_schemes/star_graph_25',['Class13', 'Class10', 'Class24'], 'x')
-#     STATS_COLLECTOR.to_file('test.csv')
 
 #################################################################################################
 # Running the experiments                                                                       #
@@ -238,44 +233,52 @@ def main():
     parser.add_argument('experiment', type=str)
     args = parser.parse_args()
 
+    NUM_REPS = 5
 
-    NUM_REPS = 2
-    
-    if args.experiment == "VizDataset":
-        dataset = create_dataset(200, 2, 200)
-        x = dataset.x_data()
-        y = dataset.y_data().squeeze()
-        x_class_0 = x[(y == 0),:]
-        x_class_1 = x[(y == 1),:]
-
-        import matplotlib.pyplot as plt
-        plt.plot(x_class_0[:,0],x_class_0[:,1],'ro', label='Class 0')
-        plt.plot(x_class_1[:,0],x_class_1[:,1], 'bo', label='Class 1')
-        plt.ylabel('Feature 2')
-        plt.xlabel('Feature 1')
-        plt.legend()
-        plt.savefig('artificial_dataset.png')
-
-    elif args.experiment == "validation_engine":
+    if args.experiment == "validation_engine":
         nconstraints = Path('speed_test_shape_schemes_new','nconstraints.json')
         with open(nconstraints, 'r') as f:
             nconstraints_dict = json.load(f)
         endpoint = 'http://localhost:14000/sparql'
         for constraints_separate in [False, 1, "all"]:
-            print('Constraints_separate')
             for shape_schema in Path('speed_test_shape_schemes_new').glob('*/**'):
-                print(shape_schema)
                 for api_config in Path('speed_test_shacl_api_configs/').glob('*.json'):
                     api_config = str(api_config)
-                    print(api_config)
                     for use_outer_join in [True]:
                         for k in range(NUM_REPS):
                             try:
-                                result = validation_engine_experiment(f"{shape_schema.name}_{api_config.replace('/','_')}_{constraints_separate}_{k}", endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate, use_outer_join=use_outer_join)
+                                result = validation_engine_experiment(endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate, use_outer_join=use_outer_join)
                                 result.result()
                             except Exception as e:
                                 print('Exception!')
                                 print(e)
+                                traceback.print_exception(*sys.exc_info())
+                                result.cancel()
+                            except KeyboardInterrupt:
+                                print('KeyboardInterrupt')
+                                result.cancel()
+                                exit()
+
+    elif args.experiment == "validation_engine_join":
+        nconstraints = Path('speed_test_shape_schemes_new','nconstraints.json')
+        with open(nconstraints, 'r') as f:
+            nconstraints_dict = json.load(f)
+        endpoint = 'http://localhost:14000/sparql'
+        for constraints_separate in ['join']:
+            for shape_schema in Path('speed_test_shape_schemes_new').glob('*/**'):
+                api_config = 'speed_test_shacl_api_configs/all_heuristics.json'
+                for use_outer_join in [True,False]:
+                    for optimization in [True, False]:
+                        if use_outer_join == False and optimization == True:
+                            continue
+                        for k in range(NUM_REPS):
+                            try:
+                                result = validation_engine_experiment(endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate, use_outer_join=use_outer_join, optimize_intermediate_results=optimization)
+                                result.result()
+                            except Exception as e:
+                                print('Exception!')
+                                print(e)
+                                traceback.print_exception(*sys.exc_info())
                                 result.cancel()
                             except KeyboardInterrupt:
                                 print('KeyboardInterrupt')
@@ -289,13 +292,36 @@ def main():
                 for n_samples in nsamples_list:
                     for max_depth in max_depths:
                         for k in range(NUM_REPS):
-                            samples_to_node_experiment(f'node_samples_{non_optimized}_{n_samples}_{max_depth}_{k}', n_samples=n_samples, max_depth=max_depth, node_to_samples_non_optimized=non_optimized).result()
+                            try:
+                                result = samples_to_node_experiment(n_samples=n_samples, max_depth=max_depth, node_to_samples_non_optimized=non_optimized).result()
+                                result.result()
+                            except Exception as e:
+                                print('Exception!')
+                                print(e)
+                                traceback.print_exception(*sys.exc_info())
+                                result.cancel()
+                            except KeyboardInterrupt:
+                                print('KeyboardInterrupt')
+                                result.cancel()
+                                exit()
+
     
     elif args.experiment == "custom":
         n_nodes_list = 4**11 * np.arange(1,10)
         for join_outer in [False]:
             for n_nodes in n_nodes_list:
-                join_strategie_experiment(f'nnodes{n_nodes}',join_outer, join_outer, False, n_nodes=n_nodes).result()
+                try:
+                    result = join_strategie_experiment(join_outer, join_outer, False, n_nodes=n_nodes).result()
+                    result.result()
+                except Exception as e:
+                    print('Exception!')
+                    print(e)
+                    traceback.print_exception(*sys.exc_info())
+                    result.cancel()
+                except KeyboardInterrupt:
+                    print('KeyboardInterrupt')
+                    result.cancel()
+                    exit()
 
     elif args.experiment == "join":
         nsamples_list = np.linspace(4**4, 4**11, num = 20, dtype=np.int_)
@@ -314,7 +340,7 @@ def main():
                     for optimize_intermediate_results in optimize_intermediate_results_set:
                         for k in range(NUM_REPS):
                             try:
-                                result = join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nsamples{n_samples}-{k}',join_outer, optimize_intermediate_results, not_pandas_optimized, n_samples=n_samples)
+                                result = join_strategie_experiment(join_outer, optimize_intermediate_results, not_pandas_optimized, n_samples=n_samples)
                                 result.result()
                             except Exception as e:
                                 print('Exception!')
@@ -325,6 +351,8 @@ def main():
                                 print('KeyboardInterrupt')
                                 result.cancel()
                                 exit()
+
+
         for n_nodes in n_nodes_list:
             for join_outer in [False, True]:
                 if join_outer:
@@ -338,16 +366,18 @@ def main():
                     for optimize_intermediate_results in optimize_intermediate_results_set:
                         for k in range(NUM_REPS):
                             try:
-                                result = join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nnodes{n_nodes}-{k}',join_outer, optimize_intermediate_results, not_pandas_optimized, n_nodes=n_nodes)
+                                result = join_strategie_experiment(join_outer, optimize_intermediate_results, not_pandas_optimized, n_nodes=n_nodes)
                                 result.result()
                             except Exception as e:
                                 print('Exception!')
                                 print(e)
+                                traceback.print_exception(*sys.exc_info())
                                 result.cancel()
                             except KeyboardInterrupt:
                                 print('KeyboardInterrupt')
                                 result.cancel()
                                 exit()
+    
         for n_constraints in n_constraints_list:
             for join_outer in [False, True]:
                 if join_outer:
@@ -361,11 +391,12 @@ def main():
                     for optimize_intermediate_results in optimize_intermediate_results_set:
                         for k in range(NUM_REPS):
                             try:    
-                                result = join_strategie_experiment(f'{join_outer}-{not_pandas_optimized}-{optimize_intermediate_results}-nconstraints{n_constraints}-{k}',join_outer, optimize_intermediate_results,not_pandas_optimized, n_constraints=n_constraints)
+                                result = join_strategie_experiment(join_outer, optimize_intermediate_results,not_pandas_optimized, n_constraints=n_constraints)
                                 result.result()
                             except Exception as e:
                                 print('Exception!')
                                 print(e)
+                                traceback.print_exception(*sys.exc_info())
                                 result.cancel()
                             except KeyboardInterrupt:
                                 print('KeyboardInterrupt')
@@ -378,41 +409,102 @@ def main():
         n_constraints_list = np.array([1,3,5,7,9,11,13,15,17,19])
         max_depths = np.array([1,2,3,4,5,6,7,8,9,10,11,12])
 
-        # for n_samples in nsamples_list:
-        #     for visualize_in_parallel in [False, True]:
-        #         for k in range(NUM_REPS):
-        #             try:
-        #                 dtreeviz_experiment(f'{visualize_in_parallel}-nsamples{n_samples}-{k}',visualize_in_parallel, n_samples=n_samples).result()
-        #             except Exception as e:
-        #                 print(e)
-        #                 traceback.print_exception(*sys.exc_info())
-        
+        for n_samples in nsamples_list:
+            for visualize_in_parallel in [False, True]:
+                for k in range(NUM_REPS):
+                    try:
+                        result = dtreeviz_experiment(visualize_in_parallel, n_samples=n_samples)
+                        result.result()
+                    except Exception as e:
+                        print('Exception!')
+                        print(e)
+                        traceback.print_exception(*sys.exc_info())
+                        result.cancel()
+                    except KeyboardInterrupt:
+                        print('KeyboardInterrupt')
+                        result.cancel()
+                        exit()
+
         for n_nodes in n_nodes_list:
             for visualize_in_parallel in [False, True]:
                 for k in range(NUM_REPS):
                     try:
-                        dtreeviz_experiment(f'{visualize_in_parallel}-nnodes{n_nodes}-{k}',visualize_in_parallel, n_nodes=n_nodes).result()
+                        result = dtreeviz_experiment(visualize_in_parallel, n_nodes=n_nodes)
+                        result.result()
                     except Exception as e:
+                        print('Exception!')
                         print(e)
                         traceback.print_exception(*sys.exc_info())
+                        result.cancel()
+                    except KeyboardInterrupt:
+                        print('KeyboardInterrupt')
+                        result.cancel()
+                        exit()
         
-        # for n_constraints in n_constraints_list:
-        #     for visualize_in_parallel in [False, True]:
-        #         for k in range(NUM_REPS):
-        #             try:
-        #                 dtreeviz_experiment(f'{visualize_in_parallel}-nconstraints{n_constraints}-{k}',visualize_in_parallel, n_constraints=n_constraints).result()
-        #             except Exception as e:
-        #                 print(e)
-        #                 traceback.print_exception(*sys.exc_info())
+        for n_constraints in n_constraints_list:
+            for visualize_in_parallel in [False, True]:
+                for k in range(NUM_REPS):
+                    try:
+                        result = dtreeviz_experiment(visualize_in_parallel, n_constraints=n_constraints)
+                        result.result()
+                    except Exception as e:
+                        print('Exception!')
+                        print(e)
+                        traceback.print_exception(*sys.exc_info())
+                        result.cancel()
+                    except KeyboardInterrupt:
+                        print('KeyboardInterrupt')
+                        result.cancel()
+                        exit()
 
-        # for max_depth in max_depths:
-        #     for visualize_in_parallel in [False, True]:
-        #         for k in range(NUM_REPS):
-        #             try:
-        #                 dtreeviz_experiment(f'{visualize_in_parallel}-maxdepth{max_depth}-{k}',visualize_in_parallel, max_depth=max_depth).result()
-        #             except Exception as e:
-        #                 print(e)
-        #                 traceback.print_exception(*sys.exc_info())
+        for max_depth in max_depths:
+            for visualize_in_parallel in [False, True]:
+                for k in range(NUM_REPS):
+                    try:
+                        result = dtreeviz_experiment(visualize_in_parallel, max_depth=max_depth)
+                        result.result()
+                    except Exception as e:
+                        print('Exception!')
+                        print(e)
+                        traceback.print_exception(*sys.exc_info())
+                        result.cancel()
+                    except KeyboardInterrupt:
+                        print('KeyboardInterrupt')
+                        result.cancel()
+                        exit()
+
+    elif args.experiment == "dtreevizComparison":
+        nsamples_list = np.linspace(4**4, 4**11, num = 15, dtype=np.int_)
+        max_depths = np.array([1,2,3,4,5,6,7,8,9,10,11,12])
+        # for k in range(NUM_REPS):
+        #     for n_samples in nsamples_list:
+        #         try:
+        #             result = dtreeviz_experiment(False, max_depth = 5, n_classes=2, n_samples=n_samples, n_nodes=4**10, n_constraints=1, fancy=True, coverage=False, run_dtreeviz=True, use_outer_join=True)
+        #             result.result()
+        #         except Exception as e:
+        #             print('Exception!')
+        #             print(e)
+        #             traceback.print_exception(*sys.exc_info())
+        #             result.cancel()
+        #         except KeyboardInterrupt:
+        #             print('KeyboardInterrupt')
+        #             result.cancel()
+        #             exit()
+
+        for k in range(1):
+            for max_depth in max_depths:
+                try:
+                    result = dtreeviz_experiment(False, max_depth = max_depth, n_classes=2, n_samples=4**10, n_nodes=4**10, n_constraints=1, fancy=True, coverage=False, run_dtreeviz=True, use_outer_join=True)
+                    result.result()
+                except Exception as e:
+                    print('Exception!')
+                    print(e)
+                    traceback.print_exception(*sys.exc_info())
+                    result.cancel()
+                except KeyboardInterrupt:
+                    print('KeyboardInterrupt')
+                    result.cancel()
+                    exit()
 
 if __name__ == '__main__':
     main()
@@ -421,3 +513,28 @@ if __name__ == '__main__':
 
 
 
+
+
+    # elif args.experiment == 'join_samples_nodes':
+
+    #     overall_list = np.linspace(4**4, 4**11, num = 5, dtype=np.int_)
+    #     # Varying samples and nodes simultaneously                        
+    #     for n_overall in overall_list:
+    #         for join_outer in [False, True]:
+    #             if join_outer:
+    #                 n_overall = int(n_overall * 0.95)
+    #             n_nodes_list = [int(0.8 * n_overall), int(n_overall), int(1.5 * n_overall)]
+    #             for n_nodes in n_nodes_list:
+    #                 for k in range(NUM_REPS):
+    #                     try:
+    #                         result = join_strategie_experiment(f'{join_outer}-nsamples{n_overall}-nnodes{n_nodes}-{k}',join_outer, False, False, n_samples=n_overall, n_nodes=n_nodes)
+    #                         result.result()
+    #                     except Exception as e:
+    #                         print('Exception!')
+    #                         print(e)
+    #                         traceback.print_exception(*sys.exc_info())
+    #                         result.cancel()
+    #                     except KeyboardInterrupt:
+    #                         print('KeyboardInterrupt')
+    #                         result.cancel()
+    #                         exit()

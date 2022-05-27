@@ -555,12 +555,18 @@ class StackedHistogram(GroupedStackedHistogram):
                  proxy_artists=None,
                  fontname='DejaVu Sans',
                  fontsize=14,
-                 graph_colors=None) -> None:
+                 graph_colors=None,
+                 data_std=None) -> None:
 
         self._mydata = [data[i, :].reshape((-1, 1))
                         for i in range(data.shape[0])]
+        if isinstance(data_std, np.ndarray):
+            self._mydata_std = [data_std[i, :].reshape((-1, 1))
+                            for i in range(data_std.shape[0])]
+        else:
+            self._mydata_std = None
         super().__init__(self._mydata, figure_size, ax,
-                         proxy_artists, fontname, fontsize, graph_colors)
+                         proxy_artists, fontname, fontsize, graph_colors, data_std=self._mydata_std)
 
     @staticmethod
     def get_width(number_of_groups, num_bars_per_group, **args):
