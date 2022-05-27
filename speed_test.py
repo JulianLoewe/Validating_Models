@@ -267,23 +267,18 @@ def main():
         for constraints_separate in ['join']:
             for shape_schema in Path('speed_test_shape_schemes_new').glob('*/**'):
                 api_config = 'speed_test_shacl_api_configs/all_heuristics.json'
-                for use_outer_join in [True,False]:
-                    for optimization in [True, False]:
-                        if use_outer_join == False and optimization == True:
-                            continue
-                        for k in range(NUM_REPS):
-                            try:
-                                result = validation_engine_experiment(endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate, use_outer_join=use_outer_join, optimize_intermediate_results=optimization)
-                                result.result()
-                            except Exception as e:
-                                print('Exception!')
-                                print(e)
-                                traceback.print_exception(*sys.exc_info())
-                                result.cancel()
-                            except KeyboardInterrupt:
-                                print('KeyboardInterrupt')
-                                result.cancel()
-                                exit()
+                try:
+                    result = validation_engine_experiment(endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate, use_outer_join=use_outer_join, optimize_intermediate_results=optimization)
+                    result.result()
+                except Exception as e:
+                    print('Exception!')
+                    print(e)
+                    traceback.print_exception(*sys.exc_info())
+                    result.cancel()
+                except KeyboardInterrupt:
+                    print('KeyboardInterrupt')
+                    result.cancel()
+                    exit()
 
     elif args.experiment == "nodesamples":
         nsamples_list = np.logspace(4,12, base=4, num = 20, dtype=np.int_)
@@ -476,35 +471,37 @@ def main():
     elif args.experiment == "dtreevizComparison":
         nsamples_list = np.linspace(4**4, 4**11, num = 15, dtype=np.int_)
         max_depths = np.array([1,2,3,4,5,6,7,8,9,10,11,12])
-        # for k in range(NUM_REPS):
-        #     for n_samples in nsamples_list:
-        #         try:
-        #             result = dtreeviz_experiment(False, max_depth = 5, n_classes=2, n_samples=n_samples, n_nodes=4**10, n_constraints=1, fancy=True, coverage=False, run_dtreeviz=True, use_outer_join=True)
-        #             result.result()
-        #         except Exception as e:
-        #             print('Exception!')
-        #             print(e)
-        #             traceback.print_exception(*sys.exc_info())
-        #             result.cancel()
-        #         except KeyboardInterrupt:
-        #             print('KeyboardInterrupt')
-        #             result.cancel()
-        #             exit()
+        for k in range(NUM_REPS):
+            for n_samples in nsamples_list:
+                for fancy in [True, False]:
+                    try:
+                        result = dtreeviz_experiment(False, max_depth = 5, n_classes=2, n_samples=n_samples, n_nodes=4**10, n_constraints=1, fancy=fancy, coverage=False, run_dtreeviz=True, use_outer_join=True)
+                        result.result()
+                    except Exception as e:
+                        print('Exception!')
+                        print(e)
+                        traceback.print_exception(*sys.exc_info())
+                        result.cancel()
+                    except KeyboardInterrupt:
+                        print('KeyboardInterrupt')
+                        result.cancel()
+                        exit()
 
-        for k in range(1):
+        for k in range(NUM_REPS):
             for max_depth in max_depths:
-                try:
-                    result = dtreeviz_experiment(False, max_depth = max_depth, n_classes=2, n_samples=4**10, n_nodes=4**10, n_constraints=1, fancy=True, coverage=False, run_dtreeviz=True, use_outer_join=True)
-                    result.result()
-                except Exception as e:
-                    print('Exception!')
-                    print(e)
-                    traceback.print_exception(*sys.exc_info())
-                    result.cancel()
-                except KeyboardInterrupt:
-                    print('KeyboardInterrupt')
-                    result.cancel()
-                    exit()
+                for fancy in [True, False]:
+                    try:
+                        result = dtreeviz_experiment(False, max_depth = max_depth, n_classes=2, n_samples=4**10, n_nodes=4**10, n_constraints=1, fancy=fancy, coverage=False, run_dtreeviz=True, use_outer_join=True)
+                        result.result()
+                    except Exception as e:
+                        print('Exception!')
+                        print(e)
+                        traceback.print_exception(*sys.exc_info())
+                        result.cancel()
+                    except KeyboardInterrupt:
+                        print('KeyboardInterrupt')
+                        result.cancel()
+                        exit()
 
 if __name__ == '__main__':
     main()
