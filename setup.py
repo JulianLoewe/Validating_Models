@@ -5,6 +5,7 @@ setuptools.setup(
     name='validating_models',
     version='x.y.z',
     description='validating_models',
+    license='GNU/GPLv3',
     author='Julian Gercke',
     packages=setuptools.find_packages(),
     install_requires=[
@@ -25,5 +26,8 @@ setuptools.setup(
         'pebble>=4.6.0'
     ],
     include_package_data=False,
-    python_requires='>=3.8'
+    python_requires='>=3.8',
+    classifiers=[
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
+    ]
 )
