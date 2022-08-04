@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 import setuptools
 
+VERSION = '1.0.0'
+
+with open('README.md', 'r', encoding='utf-8') as fh:
+    long_description = fh.read()
+
 setuptools.setup(
     name='validating_models',
     version='x.y.z',
-    description='validating_models',
+    description='Supporting Explainable AI on Semantic Constraint Validation',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     license='GNU/GPLv3',
     author='Julian Gercke',
+    url='https://github.com/JulianLoewe/Validating_Models',
+    download_url='https://github.com/JulianLoewe/Validating_Models/archive/refs/tags/v' + VERSION + '.tar.gz',
     packages=setuptools.find_packages(),
     install_requires=[
         'shaclapi>=0.9.0',
@@ -28,6 +37,15 @@ setuptools.setup(
     include_package_data=False,
     python_requires='>=3.8',
     classifiers=[
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
+        'Development Status :: 5 - Production/Stable ',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Operating System :: OS Independent',
+        'Intended Audience :: Science/Research'
     ]
 )
