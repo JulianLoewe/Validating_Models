@@ -1,21 +1,17 @@
 from abc import ABC
 import requests
-import pathlib
-import sys
 from multiprocessing import Queue
 import logging
 from validating_models.stats import new_entry
 from pathlib import Path
-PACKAGE_SHACL_API = str(pathlib.Path(__file__).parent.parent.joinpath('shaclAPI').resolve())
 
-sys.path.append(PACKAGE_SHACL_API)
 from shaclapi import logger as shaclapi_logger
 shaclapi_logger.setup(level=logging.DEBUG, handler=logging.FileHandler('api.log'))
 from shaclapi.reduction import prepare_validation
 from shaclapi.config import Config
 from shaclapi.reduction.ValidationResultTransmitter import ValidationResultTransmitter
 from shaclapi.query import Query
-sys.path.remove(PACKAGE_SHACL_API)
+
 
 class Communicator(ABC):
     """Abstract base class used to communicate with a shacl valiation engine.
