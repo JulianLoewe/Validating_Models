@@ -1,0 +1,18 @@
+{
+    "name": "Class12",
+    "targetDef": {
+        "class": "http://example.com/star_graph_25_nested/Class12",
+        "query": "SELECT ?x WHERE { ?x a <http://example.com/star_graph_25_nested/Class12> }"
+    },
+    "constraintDef": {
+        "conjunctions": [
+            [
+                {
+                    "path": "<http://example.com/star_graph_25_nested/edge12-0>",
+                    "min": 1,
+                    "shape": "Class0"
+                }
+            ]
+        ]
+    }
+}
