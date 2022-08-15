@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 import setuptools
 
-VERSION = '1.0.0'
+VERSION = '0.9.0'
 
 with open('README.md', 'r', encoding='utf-8') as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name='validating_models',
-    version='x.y.z',
+    version=VERSION,
     description='Supporting Explainable AI on Semantic Constraint Validation',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -37,7 +37,7 @@ setuptools.setup(
     include_package_data=False,
     python_requires='>=3.8',
     classifiers=[
-        'Development Status :: 5 - Production/Stable ',
+        'Development Status :: 4 - Beta',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3 :: Only',
