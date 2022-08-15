@@ -189,7 +189,7 @@ class Visualization(ABC):
         h = zip(*hl)
         if not inside:
             self.ax.legend(*h, bbox_to_anchor=(1.04, 1), loc="upper left",
-                        fontsize=self._fontsize, title_fontsize=self._fontsize, title='Categories', bbox_transform=self.fig.transFigure)
+                        fontsize=self._fontsize, title_fontsize=self._fontsize, title='', bbox_transform=self.fig.transFigure)
         else:
             self.ax.legend(*h, loc="upper right",
                         fontsize=self._fontsize, title_fontsize=self._fontsize, bbox_transform=self.fig.transFigure)

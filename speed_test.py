@@ -28,6 +28,8 @@ from dtreeviz.trees import dtreeviz
 random.seed(42)
 np.random.seed(42)
 
+BENCHMARK_DIRECTORY = 'benchmark'
+
 # Dataset Parameters
 N_CLUSTERS_PER_CLASS = 1
 N_INFORMATIVE = 2
@@ -236,13 +238,13 @@ def main():
     NUM_REPS = 5
 
     if args.experiment == "validation_engine":
-        nconstraints = Path('speed_test_shape_schemes_new','nconstraints.json')
+        nconstraints = Path(BENCHMARK_DIRECTORY ,'speed_test_shape_schemes_new','nconstraints.json')
         with open(nconstraints, 'r') as f:
             nconstraints_dict = json.load(f)
         endpoint = 'http://localhost:14000/sparql'
         for constraints_separate in [False, 1, "all"]:
-            for shape_schema in Path('speed_test_shape_schemes_new').glob('*/**'):
-                for api_config in Path('speed_test_shacl_api_configs/').glob('*.json'):
+            for shape_schema in Path(BENCHMARK_DIRECTORY, 'speed_test_shape_schemes_new').glob('*/**'):
+                for api_config in Path(BENCHMARK_DIRECTORY, 'speed_test_shacl_api_configs/').glob('*.json'):
                     api_config = str(api_config)
                     for use_outer_join in [True]:
                         for k in range(NUM_REPS):
@@ -260,13 +262,13 @@ def main():
                                 exit()
 
     elif args.experiment == "validation_engine_join":
-        nconstraints = Path('speed_test_shape_schemes_new','nconstraints.json')
+        nconstraints = Path(BENCHMARK_DIRECTORY, 'speed_test_shape_schemes_new','nconstraints.json')
         with open(nconstraints, 'r') as f:
             nconstraints_dict = json.load(f)
         endpoint = 'http://localhost:14000/sparql'
         for constraints_separate in ['join']:
-            for shape_schema in Path('speed_test_shape_schemes_new').glob('*/**'):
-                api_config = 'speed_test_shacl_api_configs/all_heuristics.json'
+            for shape_schema in Path(BENCHMARK_DIRECTORY, 'speed_test_shape_schemes_new').glob('*/**'):
+                api_config = str(Path(BENCHMARK_DIRECTORY, 'speed_test_shacl_api_configs', 'all_heuristics.json'))
                 try:
                     result = validation_engine_experiment(endpoint, api_config, shape_schema, n_constraints=nconstraints_dict[shape_schema.name], constraints_separate=constraints_separate, use_outer_join=use_outer_join, optimize_intermediate_results=optimization)
                     result.result()
