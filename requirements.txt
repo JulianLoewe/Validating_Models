@@ -1,37 +1,25 @@
 # Core
-cairosvg
-docutils
+shaclapi>=0.9.0
+cairosvg>=2.5.2
 dtreeviz
-Jinja2
 matplotlib
 numpy
 openml
 pandas
 Pillow
-rdflib
+rdflib>=6.1.0
 requests
 scikit_learn
-seaborn
-SPARQLWrapper
-tqdm
-pebble
-
-# shaclAPI
-Flask
-multiprocessing_logging
-pytest
-regex
-setuptools
+seaborn>=0.11.2
+SPARQLWrapper>=2.0.0
+tqdm>=4.63.0
+pebble>=4.6.0
 
 # Generation of the Documentation
 Sphinx
+Jinja2>=3.0.0
+docutils
 pydata-sphinx-theme
-
-# Jupyter Notebooks
-notebook
-
-# Multiple Explanations Data
-tensorflow==2.8.0
 
 # Evaluation
 pyinstrument

@@ -1,0 +1,18 @@
+{
+    "name": "Class25",
+    "targetDef": {
+        "class": "http://example.com/star_graph_26_multiple_shapes_per_class_nested/Class21",
+        "query": "SELECT ?x WHERE { ?x a <http://example.com/star_graph_26_multiple_shapes_per_class_nested/Class21> }"
+    },
+    "constraintDef": {
+        "conjunctions": [
+            [
+                {
+                    "path": "<http://example.com/star_graph_26_multiple_shapes_per_class_nested/edge25-0>",
+                    "min": 1,
+                    "shape": "Class0"
+                }
+            ]
+        ]
+    }
+}

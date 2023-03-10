@@ -174,12 +174,8 @@ cython_debug/
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,python,jupyternotebooks
 
-notebooks/outputs
 .profiles
-profiles
 .test_cache
 .output
-stacked_histogram_plots
 notebooks
-evaluation results
 outputs

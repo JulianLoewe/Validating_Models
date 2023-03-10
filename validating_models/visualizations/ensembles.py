@@ -40,7 +40,10 @@ def group_results_by_clustering(X):
     if unique_samples.shape[0] >= 2:
         for i in tqdm(range(2,unique_samples.shape[0] + 1),desc='Grid Search for best clustering'):
             labels = KMeans(n_clusters=i).fit_predict(X)
-            scores.append(silhouette_score(X, labels))
+            try:
+                scores.append(silhouette_score(X, labels))
+            except:
+                continue
             all_labels.append(labels)
         best_idx = np.argmax(np.array(scores))
         print("Best Silhouette Score: " + str(np.max(np.array(scores))))

@@ -1,0 +1,45 @@
+{
+    "name": "Class0",
+    "targetDef": {
+        "class": "http://example.com/full_binary_tree_7_nested/Class0",
+        "query": "SELECT ?x WHERE { ?x a <http://example.com/full_binary_tree_7_nested/Class0> }"
+    },
+    "constraintDef": {
+        "conjunctions": [
+            [
+                {
+                    "path": "<http://example.com/full_binary_tree_7_nested/literal1>",
+                    "min": 1
+                },
+                {
+                    "path": "<http://example.com/full_binary_tree_7_nested/literal1>",
+                    "max": 2
+                },
+                {
+                    "path": "<http://example.com/full_binary_tree_7_nested/literal2>",
+                    "min": 2
+                },
+                {
+                    "path": "<http://example.com/full_binary_tree_7_nested/literal2>",
+                    "max": 4
+                },
+                {
+                    "path": "<http://example.com/full_binary_tree_7_nested/literal3>",
+                    "min": 1
+                },
+                {
+                    "path": "<http://example.com/full_binary_tree_7_nested/literal3>",
+                    "max": 8
+                },
+                {
+                    "path": "<http://example.com/full_binary_tree_7_nested/literal4>",
+                    "min": 2
+                },
+                {
+                    "path": "<http://example.com/full_binary_tree_7_nested/literal4>",
+                    "max": 16
+                }
+            ]
+        ]
+    }
+}

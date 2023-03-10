@@ -1,0 +1,18 @@
+{
+    "name": "Class4",
+    "targetDef": {
+        "class": "http://example.com/full_binary_tree_31_distinct/Class4",
+        "query": "SELECT ?x WHERE { ?x a <http://example.com/full_binary_tree_31_distinct/Class4> }"
+    },
+    "constraintDef": {
+        "conjunctions": [
+            [
+                {
+                    "path": "<http://example.com/full_binary_tree_31_distinct/edge4-1>",
+                    "min": 1,
+                    "shape": "Class1"
+                }
+            ]
+        ]
+    }
+}
