@@ -1,5 +1,5 @@
 import numpy as np
-from dtreeviz.trees import DTreeViz
+from dtreeviz.trees import DTreeVizAPI
 import tempfile
 import os
 from validating_models.stats import get_decorator
@@ -8,7 +8,7 @@ time_picture_coposition = get_decorator('picture_composition')
 
 tmp = tempfile.gettempdir()
 
-class DTreeVizConv(DTreeViz):
+class DTreeVizConv(DTreeVizAPI):
     def __init__(self, dot, scale=1.0):
         super().__init__(dot, scale)
     

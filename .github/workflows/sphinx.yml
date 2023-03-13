@@ -20,9 +20,11 @@ jobs:
       pages: write
       id-token: write
     steps:
+    - id: setup_graphviz
+      run: apt install graphviz
     - id: deployment
       uses: sphinx-notes/pages@v3
       with:
         documentation_path: './sphinx'
-        requirements_path: 'sphinx/requirements.txt'
+        requirements_path: 'requirements.txt'
         python_version: '3.8'
