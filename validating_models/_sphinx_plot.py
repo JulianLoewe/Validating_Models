@@ -165,7 +165,6 @@ __version__ = 2
 # -----------------------------------------------------------------------------
 
 
-@cbook.deprecated("3.1", alternative="PlotDirective")
 def plot_directive(name, arguments, options, content, lineno,
                    content_offset, block_text, state, state_machine):
     """Implementation of the ``.. plot::`` directive.
