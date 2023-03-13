@@ -1,8 +1,8 @@
 name: Build and Publish Sphinx Documentation
 
 on:
-  push:
-    branches: [master]
+  release:
+    types: [published]
 
 # Cancel any in-progress job or run
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#concurrency
