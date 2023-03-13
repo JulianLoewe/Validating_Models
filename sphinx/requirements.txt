@@ -1,0 +1,4 @@
+Sphinx
+Jinja2>=3.0.0
+docutils
+pydata-sphinx-theme
