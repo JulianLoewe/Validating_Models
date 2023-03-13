@@ -25,3 +25,4 @@ jobs:
       with:
         documentation_path: './sphinx'
         requirements_path: 'sphinx/requirements.txt'
+        python_version: '3.8'
