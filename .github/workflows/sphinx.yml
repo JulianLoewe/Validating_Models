@@ -2,7 +2,7 @@ name: Build and Publish Sphinx Documentation
 
 on:
   push:
-    branches: [sphinx-docu-deployment]
+    branches: [master]
 
 # Cancel any in-progress job or run
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#concurrency
@@ -24,4 +24,4 @@ jobs:
       uses: sphinx-notes/pages@v3
       with:
         documentation_path: './sphinx'
-        requirements_path: 'requirements.txt'
+        requirements_path: 'sphinx/requirements.txt'
