@@ -14,6 +14,7 @@ from ..colors import VAL_COLORS, adjust_colors
 from ..groupings.general import group_by_complete_dataset
 from ..groupings.decision_trees import group_by_decision_tree_leaves, group_by_decision_tree_nodes, group_by_node_split_feature
 from .regression import get_feature_target_for_indices_plot
+from ..logger import get_logger
 from ..models.decision_tree import get_shadow_tree_from_checker, get_node_samples, get_single_node_samples
 from dtreeviz.models.shadow_decision_tree import ShadowDecTreeNode
 from ..visualizations.graphviz_helper import DTreeVizConv
@@ -23,6 +24,8 @@ import multiprocessing as mp
 from pebble import ProcessPool
 
 from validating_models.stats import get_process_stats_initalizer_args, process_stats_initializer
+
+logger = get_logger('validating_models.visualizations.ensembles')
 
 ##################################################################
 # Plots based on constraint validation counts:                   #
@@ -536,7 +539,7 @@ def dtreeviz(model,
             checker_per_prediction[y] = ConstantModelChecker(y, checker.dataset, use_gt=checker._use_gt)
             checker_per_prediction[y].validate(constraints)
 
-    print(f'Using {mp.cpu_count() if visualize_in_parallel else 1} worker(s)!')
+    logger.debug(f'Using {mp.cpu_count() if visualize_in_parallel else 1} worker(s)!')
     with ProcessPool(max_workers=mp.cpu_count(),context=mp.get_context('spawn'), initializer=process_stats_initializer, initargs=get_process_stats_initalizer_args()) as pool:
         for i, node in enumerate(tqdm(nodes_to_plot)):
             if use_node_predictions:

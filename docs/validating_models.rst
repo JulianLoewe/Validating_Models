@@ -23,6 +23,7 @@ Submodules
    validating_models.dataset
    validating_models.drawing_utils
    validating_models.frequency_distribution_table
+   validating_models.logger
    validating_models.shacl_validation_engine
    validating_models.stats
 

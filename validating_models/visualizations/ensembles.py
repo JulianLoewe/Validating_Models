@@ -9,6 +9,7 @@ from ..colors import adjust_colors
 from ..constraint import Constraint
 import numpy as np
 from ..groupings.classification import group_by_gt_class
+from ..logger import get_logger
 from ..models.random_forest import get_shadow_forest_from_checker
 from ..models.decision_tree import get_shadow_tree_from_checker
 from ..groupings.general import group_by_complete_dataset
@@ -18,6 +19,8 @@ from ..visualizations import graphviz_helper
 from ..visualizations import decision_trees
 from tqdm import tqdm
 from ..models.decision_tree import get_single_node_samples
+
+logger = get_logger('validating_models.visualizations.ensembles')
 
 def node_name(i):
     return f'estimator{i}'
@@ -46,7 +49,7 @@ def group_results_by_clustering(X):
                 continue
             all_labels.append(labels)
         best_idx = np.argmax(np.array(scores))
-        print("Best Silhouette Score: " + str(np.max(np.array(scores))))
+        logger.debug("Best Silhouette Score: " + str(np.max(np.array(scores))))
     else:
         return np.zeros((X.shape[0],)), 1
     return all_labels[best_idx], best_idx + 2 

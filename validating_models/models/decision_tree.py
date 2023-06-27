@@ -1,6 +1,8 @@
 from dtreeviz.models.shadow_decision_tree import ShadowDecTree, ShadowDecTreeNode
 from validating_models.stats import get_decorator, get_hyperparameter_value, new_entry
+from validating_models.logger import get_logger
 
+logger = get_logger('validating_models.models.decision_tree')
 time_node_samples = get_decorator('node_samples')
 
 def get_shadow_tree_from_checker(model, checker, tree_index=None) -> ShadowDecTree:
@@ -29,15 +31,15 @@ def get_single_node_samples(node: ShadowDecTreeNode, only_calculate_single_node=
 def get_node_samples(tree: ShadowDecTree):
     result = None
     if tree.node_to_samples is not None:
-        print('Reusing Node_samples!')
+        logger.info('Reusing Node_samples!')
         result = tree.node_to_samples
     else:
         if get_hyperparameter_value('node_to_samples_non_optimized'):
-            print('Using non optimized node_samples on purpose!')
+            logger.info('Using non optimized node_samples on purpose!')
             result = tree.get_node_samples()
         else:
             try:
-                print('Calculating node samples!')
+                logger.info('Calculating node samples!')
                 dec_paths = tree.tree_model.decision_path(tree.x_data)
                 dec_paths = dec_paths.tocsc()
 
