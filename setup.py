@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import setuptools
 
-VERSION = '0.9.2'
+VERSION = '0.9.3'
 
 with open('README.md', 'r', encoding='utf-8') as fh:
     long_description = fh.read()
@@ -20,7 +20,7 @@ setuptools.setup(
     install_requires=[
         'shaclapi>=0.9.0',
         'cairosvg>=2.5.2',
-        'dtreeviz',
+        'dtreeviz>=2.0.0',
         'matplotlib',
         'numpy',
         'openml',

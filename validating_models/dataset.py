@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .constraint import Constraint, InvertedPredictionConstraint, InvertedShaclSchemaConstraint, PredictionConstraint, ShaclSchemaConstraint
 from .shacl_validation_engine import Communicator,ReducedTravshaclCommunicator
+from .logger import get_logger
 
 import pandas as pd
 import numpy as np
@@ -21,6 +22,8 @@ from validating_models.stats import get_decorator, get_hyperparameter_value, new
 
 time_join = get_decorator('join')
 time_shacl_schema_validation = get_decorator('shacl_schema_validation')
+
+logger = get_logger('validating_models.dataset')
 
 MAX_INSTANCES_IN_FILTER = 200
 DATATYPE_TO_PANDAS_TYPE = {
@@ -309,7 +312,7 @@ class BaseDataset(Dataset):
             self.feature_names.remove(self.target_name)
         if self.seed_var in self.feature_names:
             self.feature_names.remove(self.seed_var)
-        print('Number of unique nodes: ' + str(len(self.get_sample_to_node_mapping().unique())))
+        logger.info('Number of unique nodes: ' + str(len(self.get_sample_to_node_mapping().unique())))
 
     @staticmethod
     def from_knowledge_graph(endpoint, validation_engine: Communicator, data_query: str, target_name: str, seed_var:str = 'x', seed_query: str = None, ground_truth: pd.DataFrame = None, raw_data_query_results_to_df_hook=None, **args):
@@ -382,7 +385,7 @@ class BaseDataset(Dataset):
                         if value['type'] in TYPE_TO_PANDAS_TYPE:
                             found_type = TYPE_TO_PANDAS_TYPE[value['type']]
                     if found_type != None:
-                        print(column, found_type)
+                        logger.debug(column + ': ' + found_type)
                         if found_type == 'numeric':
                             df[column] = pd.to_numeric(
                                 df[column], errors='ignore')
@@ -411,7 +414,7 @@ class BaseDataset(Dataset):
         return {constraint.target_shape: {node: random_val_results[i] for i,node in enumerate(self.unique_seed_nodes) if random_val_results[i] != None}}
 
     def _calculate_shacl_schema_validation_result(self, constraint: Constraint):
-        print(f"Validating SHACL shape schema {constraint.shape_schema_dir} of single constraint with target {constraint.target_shape}")
+        logger.info(f"Validating SHACL shape schema {constraint.shape_schema_dir} of single constraint with target {constraint.target_shape}")
         if self.random_schema_validation:
             val_results = self._generate_random_shacl_schema_validation_results(constraint)
         else:
@@ -481,28 +484,28 @@ class BaseDataset(Dataset):
 
                         if num_nodes_to_exclude < num_nodes_to_include:
                             if num_nodes_to_exclude <= MAX_INSTANCES_IN_FILTER:
-                                print('Adding FILTER clause to reduce the number of results.')
+                                logger.debug('Adding FILTER clause to reduce the number of results.')
                                 filter_clause_per_target_shape[target_shape] = f'FILTER (?{self.seed_var} NOT IN ({",".join([f"<{node}>" for node in nodes_to_exclude])}))'
                             else:
-                                print(f'Skip adding filter clause to {target_shape} because of to many instances ({num_nodes_to_exclude}) to exclude.')
+                                logger.debug(f'Skip adding filter clause to {target_shape} because of to many instances ({num_nodes_to_exclude}) to exclude.')
                                 continue
                         else:
                             if num_nodes_to_include <= MAX_INSTANCES_IN_FILTER:
-                                print('Adding FILTER clause to reduce the number of results.')
+                                logger.debug('Adding FILTER clause to reduce the number of results.')
                                 filter_clause_per_target_shape[target_shape] = f'FILTER (?{self.seed_var} IN ({",".join([f"<{node}>" for node in nodes_to_include])}))'
                             else:
-                                print(f'Skip adding filter clause to {target_shape} because of to many instances ({num_nodes_to_include}) to include.')
+                                logger.debug(f'Skip adding filter clause to {target_shape} because of to many instances ({num_nodes_to_include}) to include.')
                                 continue  
 
                 else:
-                    print('Skip adding filter clause because no checker instance is provided.')
+                    logger.debug('Skip adding filter clause because no checker instance is provided.')
 
-                print(f"Validating {shape_schema_dir} for targets {target_shapes}")
+                logger.info(f"Validating {shape_schema_dir} for targets {target_shapes}")
                 if filter_clause_per_target_shape:
                     try:
                         val_results = self.communicator.request(self.seed_query, shape_schema_dir, target_shapes, self.seed_var, filter_clause_per_target_shape)
                     except:
-                        print('Falling back to not use additional FILTER clauses.')
+                        logger.warning('Falling back to not use additional FILTER clauses.')
                         
                 else:
                     val_results = self.communicator.request(self.seed_query, shape_schema_dir, target_shapes, self.seed_var)
@@ -511,7 +514,7 @@ class BaseDataset(Dataset):
                     shacl_identifier = Constraint.get_shacl_identifier(shape_schema_dir, target_shape)
                     self.shacl_validation_results[shacl_identifier] = pd.DataFrame.from_dict(val_results[target_shape], orient='index', columns=[shacl_identifier], dtype=bool) 
 
-                    print("Number of validated targets: " + str(self.shacl_validation_results[shacl_identifier].sum()))
+                    logger.info("Number of validated targets: " + str(self.shacl_validation_results[shacl_identifier].sum()))
         else:
             new_entry('n_unique_nodes',len(self.unique_seed_nodes))
             for constraint in constraints:
@@ -587,15 +590,15 @@ class BaseDataset(Dataset):
     
     @time_join
     def _index_join_pandas(self, identifiers, class_to_identifier): # left outer join
-        print('Directly joining with the sample to node mapping!')
+        logger.info('Directly joining with the sample to node mapping!')
         for identifier in identifiers:
-            print(f"Joining {identifier}")
+            logger.debug(f"Joining {identifier}")
             self.sample_to_node_mapping = self.sample_to_node_mapping.join(self.shacl_validation_results[identifier], on=self.seed_var)
         return self.sample_to_node_mapping
     
     @time_join
     def _outer_join_pandas(self, identifiers, class_to_identifier):
-        print('Using the outer join')
+        logger.info('Using the outer join')
         if isinstance(identifiers, list) and len(identifiers) == 1:
             identifiers = identifiers.pop()
             return self.sample_to_node_mapping.join(self.shacl_validation_results[identifiers], on=self.seed_var)
@@ -603,7 +606,7 @@ class BaseDataset(Dataset):
             return self.sample_to_node_mapping.join(self.shacl_validation_results[identifiers], on=self.seed_var)
         else:
             if get_hyperparameter_value('optimize_intermediate_results'):
-                print('Ordering by cardinality')
+                logger.info('Ordering by cardinality')
                 if 'NONE' in class_to_identifier:
                     remaining_identifiers = sorted(list(class_to_identifier['NONE']), key = lambda x: len(self.shacl_validation_results[x]))
                 else:
@@ -617,7 +620,7 @@ class BaseDataset(Dataset):
             first_key = identifiers.pop() # shacl results are joined first with full outer join and afterwards joined with the mapping with a left outer join
             
             if get_hyperparameter_value('not_pandas_optimized'):
-                print('Using not pandas optimized join')
+                logger.debug('Using not pandas optimized join')
                 result = self.shacl_validation_results[first_key]
                 for key in identifiers:
                     result = result.join(self.shacl_validation_results[key], how='outer')
@@ -694,8 +697,8 @@ class ProcessedDataset(Dataset):
             self.feature_names.remove(self.seed_var)
         self.unique_seed_nodes = set(self.get_sample_to_node_mapping().unique())
         self.unneeded_seed_nodes = self.base.unique_seed_nodes - self.unique_seed_nodes
-        print(f'Identified {len(self.unique_seed_nodes)} unique seed nodes!')
-        print(f'In comparison to the BaseDataset this makes a total of {len(self.unneeded_seed_nodes)} unneeded seed nodes!')
+        logger.info(f'Identified {len(self.unique_seed_nodes)} unique seed nodes!')
+        logger.info(f'In comparison to the BaseDataset this makes a total of {len(self.unneeded_seed_nodes)} unneeded seed nodes!')
     
     @staticmethod
     def from_unchanged_index(processed_df: pd.DataFrame, base: BaseDataset, target_name: str = None, categorical_mapping=None):

@@ -351,7 +351,7 @@ class GroupedStackedHistogram(Visualization):
                  data_std=None) -> None:
         self._data = data
         if isinstance(data_std, list):
-            print('std given')
+            # print('std given')
             self._data_std = data_std
         else:
             self._data_std = [np.zeros_like(self._data[0]) for i in range(len(self._data))]
