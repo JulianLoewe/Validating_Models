@@ -7,7 +7,7 @@ time_node_samples = get_decorator('node_samples')
 
 def get_shadow_tree_from_checker(model, checker, tree_index=None) -> ShadowDecTree:
     dataset = checker.dataset
-    return ShadowDecTree.get_shadow_tree(model, x_data=dataset.x_data(), y_data=dataset.y_data(), feature_names=dataset.feature_names, target_name=dataset.target_name, class_names=dataset.class_names, tree_index=tree_index)
+    return ShadowDecTree.get_shadow_tree(model, X_train=dataset.x_data(), y_train=dataset.y_data(), feature_names=dataset.feature_names, target_name=dataset.target_name, class_names=dataset.class_names, tree_index=tree_index)
 
 
 def _get_single_node_samples(node: ShadowDecTreeNode):
@@ -15,7 +15,7 @@ def _get_single_node_samples(node: ShadowDecTreeNode):
     Fast methode to get the samples of a single node.
     '''
     model = node.shadow_tree.tree_model
-    x_data = node.shadow_tree.x_data
+    x_data = node.shadow_tree.X_train
     paths = model.decision_path(x_data)
     return list(paths[:,node.id].nonzero()[0])
 
@@ -40,7 +40,7 @@ def get_node_samples(tree: ShadowDecTree):
         else:
             try:
                 logger.info('Calculating node samples!')
-                dec_paths = tree.tree_model.decision_path(tree.x_data)
+                dec_paths = tree.tree_model.decision_path(tree.X_train)
                 dec_paths = dec_paths.tocsc()
 
                 n_nodes = dec_paths.shape[1]
@@ -55,4 +55,3 @@ def get_node_samples(tree: ShadowDecTree):
     new_entry('n_leaves',len(tree.leaves))
     new_entry('n_splitnodes',len(tree.internal))
     return result
-        
