@@ -1,5 +1,5 @@
 import numpy as np
-from dtreeviz.trees import DTreeVizAPI
+from dtreeviz.utils import DTreeVizRender
 import tempfile
 import os
 from validating_models.stats import get_decorator
@@ -8,7 +8,7 @@ time_picture_coposition = get_decorator('picture_composition')
 
 tmp = tempfile.gettempdir()
 
-class DTreeVizConv(DTreeVizAPI):
+class DTreeVizConv(DTreeVizRender):
     def __init__(self, dot, scale=1.0):
         super().__init__(dot, scale)
     
@@ -17,7 +17,7 @@ class DTreeVizConv(DTreeVizAPI):
         return DTreeVizConv(dtreeviz.dot, dtreeviz.scale)
 
     @time_picture_coposition
-    def save(self, filename, transparent = True, dpi=1000):
+    def save(self, filename, transparent=True, dpi=1000):
 
         dot_idx = filename.rindex('.')
         svg_file = filename[:dot_idx] + '.svg'
@@ -172,7 +172,7 @@ def grid_layout(title, nodes, edges, legend, colors, size=None, fontname='Helvet
         edge [style=invis]
 
         {newline.join(grid_edges)}
-        {class_legend_gr(legend) if legend != None else ''}
+        {class_legend_gr(legend) if legend is not None else ''}
 
     }}
     '''
