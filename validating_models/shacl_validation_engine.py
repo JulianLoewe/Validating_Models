@@ -54,7 +54,7 @@ class ReducedTravshaclCommunicator(Communicator):
         self.api_config = api_config
     
     def request(self, query, shape_schema_dir, target_shapes, seed_var, query_extension_per_target_shape = {}):
-        config = Config.from_request_form({'config': self.api_config, 'query': query, 'schemaDir': shape_schema_dir, 'external_endpoint': self.external_endpoint, 'targetShape': {f'?{seed_var}': target_shapes}, 'query_extension_per_target_shape': query_extension_per_target_shape, 'test_identifier': str(Path(shape_schema_dir).name) }) #+ str(sorted(target_shapes))[:100] })
+        config = Config.from_request_form({'config': self.api_config, 'query': query, 'schemaDir': shape_schema_dir, 'external_endpoint': self.external_endpoint, 'targetShape': {f'?{seed_var}': target_shapes}, 'query_extension_per_target_shape': query_extension_per_target_shape, 'test_identifier': str(Path(shape_schema_dir).name) if isinstance(shape_schema_dir, str) else str(shape_schema_dir) })
         queue = Queue()
         result_transmitter = ValidationResultTransmitter(output_queue=queue)
         shape_schema = prepare_validation(config, Query(query), result_transmitter)
