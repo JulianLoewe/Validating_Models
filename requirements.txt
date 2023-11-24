@@ -1,5 +1,5 @@
 # Core
-shaclapi>=0.9.0
+shaclapi>=0.11.0
 cairosvg>=2.5.2
 dtreeviz>=2.0.0
 matplotlib

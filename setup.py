@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import setuptools
 
-VERSION = '0.9.5'
+VERSION = '0.9.6'
 
 with open('README.md', 'r', encoding='utf-8') as fh:
     long_description = fh.read()
@@ -18,7 +18,7 @@ setuptools.setup(
     download_url='https://github.com/JulianLoewe/Validating_Models/archive/refs/tags/v' + VERSION + '.tar.gz',
     packages=setuptools.find_packages(),
     install_requires=[
-        'shaclapi>=0.9.0',
+        'shaclapi>=0.11.0',
         'cairosvg>=2.5.2',
         'dtreeviz>=2.0.0',
         'matplotlib',
